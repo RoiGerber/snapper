@@ -13,23 +13,26 @@ const MainPage = () => {
   const [isValidRole, setIsValidRole] = useState(false);
 
   useEffect(() => {
-    if (isLoading) return; // Wait until loading completes
-
+    if (isLoading) return;
+  
     // Handle null/undefined roles
     if (!role) {
       console.log('No role found, redirecting...');
+      setIsValidRole(false); // Update state to prevent rendering
       router.replace('/getStarted');
       return;
     }
-
+  
     // Validate role
     if (['photographer', 'client'].includes(role)) {
       setIsValidRole(true);
     } else {
       console.log('Invalid role, redirecting:', role);
+      setIsValidRole(false); // Update state to prevent rendering
       router.replace('/getStarted');
     }
   }, [role, isLoading, router]);
+
 
   if (isLoading) {
     return (
@@ -57,8 +60,8 @@ const MainPage = () => {
         className="relative z-10 mb-8 text-center w-full"
       >
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mx-auto">
-          Welcome, {role.charAt(0).toUpperCase() + role.slice(1)}
-        </h1>
+  Welcome, {role?.charAt(0)?.toUpperCase() + role?.slice(1)}
+</h1>
         <p className="mt-2 md:mt-3 text-lg md:text-xl text-indigo-900/80 mx-auto max-w-xl">
           {role === 'photographer' 
             ? 'Manage your photography business with ease'

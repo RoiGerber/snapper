@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/firebaseConfig'; // Import Firebase auth
 import { signOut } from 'firebase/auth'; // Import signOut
 import { useAuth } from '@/lib/auth'; // Import Auth Context
+import { useRouter } from 'next/navigation';
 import {
   Menu,
   X,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Navbar() {
+  const router = useRouter();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -35,7 +37,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      alert('Logged out successfully!');
+      router.push('/login');
     } catch (error) {
       console.error('Error logging out:', error.message);
       alert('Failed to log out.');
