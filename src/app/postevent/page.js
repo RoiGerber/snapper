@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/auth"; // Authentication hook
-import { useRouter } from "next/navigation"; // Navigation
+import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,11 +18,10 @@ import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { db } from "../../lib/firebaseConfig"; // Firebase configuration
+import { db } from "../../lib/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
-import useUserRole from '@/hooks/useUserRole'; // User role hook
+import useUserRole from '@/hooks/useUserRole';
 
-// Region options
 const regions = [
   "מרכז",
   "צפון",
@@ -34,7 +33,6 @@ const regions = [
   "ירושלים",
 ];
 
-// Event type options
 const eventTypes = [
   "יום הולדת",
   "חתונה",
@@ -46,10 +44,10 @@ const eventTypes = [
 ];
 
 export default function PostEvent() {
-  const { user, loading } = useAuth(); // Authenticated user and loading state
-  const router = useRouter(); // Navigation
-  const { role, isLoading: roleLoading } = useUserRole(); // User role and loading state
-  const [isValidRole, setIsValidRole] = useState(false); // Valid role state
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const { role, isLoading: roleLoading } = useUserRole();
+  const [isValidRole, setIsValidRole] = useState(false);
   const [eventData, setEventData] = useState({
     name: "",
     address: "",
@@ -58,48 +56,43 @@ export default function PostEvent() {
     date: null,
     region: "",
     type: "",
-    user: user?.email || "", // User's email
+    user: user?.email || "",
   });
-  const [showCustomType, setShowCustomType] = useState(false); // Show custom type input
+  const [showCustomType, setShowCustomType] = useState(false);
 
-  // Redirect unauthenticated users or users with invalid roles
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login"); // Redirect to login if not authenticated
+      router.push("/login");
     }
 
     if (!roleLoading && role) {
       if (['photographer', 'client'].includes(role)) {
         setIsValidRole(true);
       } else {
-        router.replace('/getStarted'); // Redirect if role is invalid
+        router.replace('/getStarted');
       }
     }
   }, [user, loading, role, roleLoading, router]);
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEventData({ ...eventData, [name]: value });
   };
 
-  // Handle date selection
   const handleDateSelect = (date) => {
     setEventData({ ...eventData, date });
   };
 
-  // Handle event type selection
   const handleTypeSelect = (value) => {
     if (value === "אחר") {
       setShowCustomType(true);
-      setEventData({ ...eventData, type: "" }); // Reset type for custom input
+      setEventData({ ...eventData, type: "" });
     } else {
       setShowCustomType(false);
       setEventData({ ...eventData, type: value });
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -109,10 +102,19 @@ export default function PostEvent() {
     }
 
     try {
-      await addDoc(collection(db, "events"), {
+      // Create event document
+      const eventRef = await addDoc(collection(db, "events"), {
         ...eventData,
-        user: user.email, // Use authenticated user's email
+        user: user.email,
       });
+
+      // Create user2event relationship
+      await addDoc(collection(db, "user2event"), {
+        userId: user.email,
+        eventId: eventRef.id,
+        createdAt: new Date()
+      });
+
       alert("Event posted successfully!");
 
       // Reset form
@@ -133,12 +135,10 @@ export default function PostEvent() {
     }
   };
 
-  // Show loading state while checking authentication or role
   if (loading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  // Show nothing if unauthenticated or invalid role
   if (!user || !isValidRole) {
     return null;
   }

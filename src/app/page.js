@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Camera, Images, Settings, Calendar } from 'lucide-react';
+import { Camera, Images, Settings, Calendar,Plus, CalendarPlus } from 'lucide-react';
 
 const MainPage = () => {
   const router = useRouter();
@@ -121,7 +121,7 @@ const ClientDashboard = () => {
         whileTap={{ scale: 0.98 }}
       >
         <Link href="/postevent" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <Calendar className="w-12 h-12 mb-4 text-white opacity-90" />
+          <CalendarPlus className="w-12 h-12 mb-4 text-white opacity-90" />
           <div className="text-white text-4xl font-bold mb-4">Post Event</div>
           <p className="text-white text-lg opacity-80">
             Share your event photos and experiences.
@@ -142,6 +142,25 @@ const ClientDashboard = () => {
           </p>
         </Link>
       </motion.div>
+
+
+      <motion.div
+        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-green-600 to-green-500 transition-all duration-300 cursor-pointer mx-4"
+
+
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+      >
+        <Link href="/myevents" className="w-full h-full flex flex-col items-center justify-center text-center">
+          <Calendar className="w-12 h-12 mb-4 text-white opacity-90" />
+          <div className="text-white text-4xl font-bold mb-4">My Events</div>
+          <p className="text-white text-lg opacity-80">
+            Browse through your scheduled events.
+          </p>
+        </Link>
+      </motion.div>
+
+
     </div>
   );
 };
