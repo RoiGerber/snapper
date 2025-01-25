@@ -2,19 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { PencilIcon,PlusIcon,XIcon, ShareIcon ,TrashIcon,FileIcon, UserPlusIcon,UsersIcon,
-  FileTextIcon, 
-  FileCodeIcon, 
-  FileVideoIcon, 
-  FileAudioIcon,} from 'lucide-react';
-
+import { PencilIcon, PlusIcon, XIcon, TrashIcon, FileIcon, UserPlusIcon, UsersIcon, FileTextIcon, FileCodeIcon, FileVideoIcon, FileAudioIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth'; // Use your AuthContext
 import { useRouter } from 'next/navigation'; // For navigation
-import { doc, setDoc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { ref, uploadBytes,uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
-
 
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
@@ -98,33 +92,64 @@ const FileCard = ({ file }) => {
   );
 };
 
-const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
-  const [newUsername, setNewUsername] = useState('');
-  const [sharedUsers, setSharedUsers] = useState(folder.sharedWith || []);
+const TagListModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
+  const [newEmail, setNewEmail] = useState('');
+  const [taggedUsers, setTaggedUsers] = useState(folder.taggedUsers || []);
   const [error, setError] = useState('');
 
   const handleAddUser = async () => {
-    if (!newUsername.trim()) {
-      setError('Please enter a username');
+    if (!newEmail.trim()) {
+      setError('Please enter an email address');
       return;
     }
 
-    // Here you would typically validate if the user exists in your system
     try {
-      // Add validation logic here
-      const updatedUsers = [...sharedUsers, newUsername];
-      setSharedUsers(updatedUsers);
-      setNewUsername('');
+      // Add the email to the taggedUsers list
+      const updatedUsers = [...taggedUsers, newEmail];
+      setTaggedUsers(updatedUsers);
+      setNewEmail('');
       setError('');
+
+      // Update the folder's taggedUsers in Firestore
+      const folderRef = doc(db, 'folders', folder.id);
+      await updateDoc(folderRef, { taggedUsers: updatedUsers });
+
+      // Update the user2folders collection for the tagged user
+      const user2foldersRef = doc(db, 'user2folders', newEmail);
+      const user2foldersSnap = await getDoc(user2foldersRef);
+
+      if (user2foldersSnap.exists()) {
+        await updateDoc(user2foldersRef, {
+          folderIds: arrayUnion(folder.id),
+        });
+      } else {
+        await setDoc(user2foldersRef, {
+          folderIds: [folder.id],
+        });
+      }
+
+      // Notify the parent component
       onUpdateSharing(folder.id, updatedUsers);
     } catch (error) {
       setError('Failed to add user');
     }
   };
 
-  const handleRemoveUser = (username) => {
-    const updatedUsers = sharedUsers.filter(user => user !== username);
-    setSharedUsers(updatedUsers);
+  const handleRemoveUser = async (email) => {
+    const updatedUsers = taggedUsers.filter(user => user !== email);
+    setTaggedUsers(updatedUsers);
+
+    // Update the folder's taggedUsers in Firestore
+    const folderRef = doc(db, 'folders', folder.id);
+    await updateDoc(folderRef, { taggedUsers: updatedUsers });
+
+    // Remove the folder from the user2folders collection for the removed user
+    const user2foldersRef = doc(db, 'user2folders', email);
+    await updateDoc(user2foldersRef, {
+      folderIds: arrayRemove(folder.id),
+    });
+
+    // Notify the parent component
     onUpdateSharing(folder.id, updatedUsers);
   };
 
@@ -139,7 +164,7 @@ const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
         className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl"
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800">Share "{folder.name}"</h2>
+          <h2 className="text-xl font-bold text-gray-800">Tag List for "{folder.name}"</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -152,10 +177,10 @@ const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
           {/* Add User Input */}
           <div className="flex gap-2">
             <input
-              type="text"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="Enter username"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="Enter email address"
               className="flex-1"
             />
             <Button
@@ -170,14 +195,14 @@ const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
             <p className="text-red-500 text-sm">{error}</p>
           )}
 
-          {/* Shared Users List */}
+          {/* Tagged Users List */}
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Shared with:</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Tagged Users:</h3>
             <div className="space-y-2">
-              {sharedUsers.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">No users added yet</p>
+              {taggedUsers.length === 0 ? (
+                <p className="text-sm text-gray-500 italic">No users tagged yet</p>
               ) : (
-                sharedUsers.map((username, index) => (
+                taggedUsers.map((email, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: -10 }}
@@ -187,10 +212,10 @@ const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
                   >
                     <div className="flex items-center gap-2">
                       <UsersIcon className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">{username}</span>
+                      <span className="text-sm text-gray-700">{email}</span>
                     </div>
                     <button
-                      onClick={() => handleRemoveUser(username)}
+                      onClick={() => handleRemoveUser(email)}
                       className="p-1 hover:bg-gray-200 rounded-full transition-colors"
                     >
                       <TrashIcon className="w-4 h-4 text-red-500" />
@@ -215,8 +240,10 @@ const ShareModal = ({ isOpen, onClose, folder, onUpdateSharing }) => {
   );
 };
 
-const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus, isExpanded, onToggleExpand,onUpdateSharing }) => {
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus, isExpanded, onToggleExpand, onUpdateSharing }) => {
+  const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newFolderName, setNewFolderName] = useState(folder.name);
 
   const renderFolderHeader = () => (
     <div className="flex justify-between items-center mb-4">
@@ -226,17 +253,31 @@ const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus,
           isExpanded ? 'text-2xl' : 'text-lg'
         }`}
       >
-        {folder.name}
+        {isRenaming ? (
+          <input
+            type="text"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            onBlur={() => {
+              setIsRenaming(false);
+              onUpdateSharing(folder.id, { name: newFolderName });
+            }}
+            className="border rounded px-2 py-1"
+            autoFocus
+          />
+        ) : (
+          <span onClick={() => setIsRenaming(true)}>{folder.name}</span>
+        )}
       </motion.h2>
       <div className="flex items-center gap-4">
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            setIsShareModalOpen(true);
+            setIsTagListModalOpen(true);
           }}
           className="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 p-2 rounded-full"
         >
-          <ShareIcon className="w-4 h-4" />
+          <UsersIcon className="w-4 h-4" />
         </Button>
         <div>
           <input
@@ -264,103 +305,101 @@ const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus,
 
   return (
     <>
-    <motion.div
-      layout
-      initial={false}
-      animate={{
-        gridColumn: isExpanded ? "1 / -1" : "auto",
-        transition: { duration: 0.3 }
-      }}
-      className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${
-        isExpanded ? 'h-[70vh] overflow-y-auto' : 'h-[200px] hover:scale-105'
-      }`}
-    >
-      {/* Close button when expanded */}
-      {isExpanded && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-          onClick={() => onToggleExpand(null)}
-        >
-          <XIcon className="w-5 h-5 text-gray-600" />
-        </motion.button>
-      )}
-
-      
-      {/* Folder Header */}
-      {renderFolderHeader()}
-
-      {/* Progress Indicators */}
-      {currentFileProgress[folder.id] > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-          <div
-            className="bg-green-500 h-2.5 rounded-full transition-all"
-            style={{ width: `${currentFileProgress[folder.id]}%` }}
-          ></div>
-        </div>
-      )}
-
-      {uploadStatus[folder.id]?.total > 0 && (
-        <div className="text-sm text-gray-600 mt-2">
-          Uploaded {uploadStatus[folder.id]?.uploaded} of {uploadStatus[folder.id]?.total} files
-        </div>
-      )}
-
-      {/* Files Grid/List */}
-      <motion.div 
+      <motion.div
         layout
-        className={`mt-4 ${
-          isExpanded 
-            ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4' 
-            : 'space-y-2 overflow-hidden'
+        initial={false}
+        animate={{
+          gridColumn: isExpanded ? "1 / -1" : "auto",
+          transition: { duration: 0.3 }
+        }}
+        className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${
+          isExpanded ? 'h-[70vh] overflow-y-auto' : 'h-[200px] hover:scale-105'
         }`}
       >
-        {folder.files.map((file, index) => (
-          <AnimatePresence mode="wait" key={index}>
-            {isExpanded ? (
-              <FileCard file={file} />
-            ) : (
-              <motion.div className="text-sm text-gray-700 truncate">
-                <a
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-indigo-600 hover:underline"
-                >
-                  {file.name.length > 15 
-                    ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
-                    : file.name}
-                </a>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        ))}
+        {/* Close button when expanded */}
+        {isExpanded && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+            onClick={() => onToggleExpand(null)}
+          >
+            <XIcon className="w-5 h-5 text-gray-600" />
+          </motion.button>
+        )}
+
+        {/* Folder Header */}
+        {renderFolderHeader()}
+
+        {/* Progress Indicators */}
+        {currentFileProgress[folder.id] > 0 && (
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div
+              className="bg-green-500 h-2.5 rounded-full transition-all"
+              style={{ width: `${currentFileProgress[folder.id]}%` }}
+            ></div>
+          </div>
+        )}
+
+        {uploadStatus[folder.id]?.total > 0 && (
+          <div className="text-sm text-gray-600 mt-2">
+            Uploaded {uploadStatus[folder.id]?.uploaded} of {uploadStatus[folder.id]?.total} files
+          </div>
+        )}
+
+        {/* Files Grid/List */}
+        <motion.div 
+          layout
+          className={`mt-4 ${
+            isExpanded 
+              ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4' 
+              : 'space-y-2 overflow-hidden'
+          }`}
+        >
+          {folder.files.map((file, index) => (
+            <AnimatePresence mode="wait" key={index}>
+              {isExpanded ? (
+                <FileCard file={file} />
+              ) : (
+                <motion.div className="text-sm text-gray-700 truncate">
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:underline"
+                  >
+                    {file.name.length > 15 
+                      ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
+                      : file.name}
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          ))}
+        </motion.div>
+
+        {/* Clickable overlay when not expanded */}
+        {!isExpanded && (
+          <div
+            className="absolute inset-0 cursor-pointer"
+            onClick={() => onToggleExpand(folder.id)}
+          />
+        )}
       </motion.div>
 
-      {/* Clickable overlay when not expanded */}
-      {!isExpanded && (
-        <div
-          className="absolute inset-0 cursor-pointer"
-          onClick={() => onToggleExpand(folder.id)}
-        />
-      )}
-    </motion.div>
-
-<AnimatePresence>
-{isShareModalOpen && (
-  <ShareModal
-    isOpen={isShareModalOpen}
-    onClose={() => setIsShareModalOpen(false)}
-    folder={folder}
-    onUpdateSharing={onUpdateSharing}
-  />
-)}
-</AnimatePresence>
-</>
+      <AnimatePresence>
+        {isTagListModalOpen && (
+          <TagListModal
+            isOpen={isTagListModalOpen}
+            onClose={() => setIsTagListModalOpen(false)}
+            folder={folder}
+            onUpdateSharing={onUpdateSharing}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
-
 
 export default function Manage() {
   const { user, loading } = useAuth(); // Get user and loading state
@@ -374,8 +413,7 @@ export default function Manage() {
   const [currentFileProgress, setCurrentFileProgress] = useState({});
   const [uploadStatus, setUploadStatus] = useState({});
   const [expandedFolderId, setExpandedFolderId] = useState(null);
-
-
+  const [isCreateFolderModalOpen, setIsCreateFolderModalOpen] = useState(false);
 
   // Redirect unauthenticated users
   useEffect(() => {
@@ -387,18 +425,30 @@ export default function Manage() {
   useEffect(() => {
     const fetchFolders = async () => {
       if (!user) return;
-  
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-  
-      if (userDocSnap.exists()) {
-        const data = userDocSnap.data();
-        setFolders(data.folders || []);
+
+      // Fetch user2folders document for the current user (using email as the key)
+      const user2foldersRef = doc(db, 'user2folders', user.email);
+      const user2foldersSnap = await getDoc(user2foldersRef);
+
+      if (user2foldersSnap.exists()) {
+        const folderIds = user2foldersSnap.data().folderIds || [];
+        const foldersData = [];
+
+        // Fetch each folder from the folders collection
+        for (const folderId of folderIds) {
+          const folderRef = doc(db, 'folders', folderId);
+          const folderSnap = await getDoc(folderRef);
+          if (folderSnap.exists()) {
+            foldersData.push({ id: folderId, ...folderSnap.data() });
+          }
+        }
+
+        setFolders(foldersData);
       } else {
         console.log('No folders found for this user.');
       }
     };
-  
+
     fetchFolders();
   }, [user]);
 
@@ -412,192 +462,165 @@ export default function Manage() {
     return null;
   }
 
-  const handleUpdateSharing = async (folderId, sharedUsers) => {
+  const handleUpdateSharing = async (folderId, updatedData) => {
     try {
-      const userDocRef = doc(db, 'users', user.uid);
-      const updatedFolders = folders.map(folder =>
-        folder.id === folderId
-          ? { ...folder, sharedWith: sharedUsers }
-          : folder
-      );
+      const folderRef = doc(db, 'folders', folderId);
+      await updateDoc(folderRef, updatedData);
 
-      await updateDoc(userDocRef, { folders: updatedFolders });
-      setFolders(updatedFolders);
+      // Update local state
+      setFolders((prev) =>
+        prev.map((folder) =>
+          folder.id === folderId ? { ...folder, ...updatedData } : folder
+        )
+      );
     } catch (error) {
-      console.error('Error updating sharing:', error);
+      console.error('Error updating folder:', error);
     }
   };
-  
 
-const handleMultipleFileUpload = async (folderId, files) => {
-  try {
-    const userDocRef = doc(db, 'users', user.uid);
-    const uploadedFiles = [];
-
-    // Initialize upload status for the folder
-    setUploadStatus((prev) => ({
-      ...prev,
-      [folderId]: { uploaded: 0, total: files.length },
-    }));
-
-    // Loop through each file and upload
-    for (const file of files) {
-      const filePath = `${user.uid}/${folderId}/${file.name}`;
-      const storageRef = ref(storage, filePath);
-
-      const uploadTask = uploadBytesResumable(storageRef, file);
-
-      await new Promise((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            // Update current file upload progress
-            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-            setCurrentFileProgress((prev) => ({
-              ...prev,
-              [folderId]: progress,
-            }));
-          },
-          reject,
-          async () => {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            uploadedFiles.push({ name: file.name, url: downloadURL });
-
-            // Update uploaded count
-            setUploadStatus((prev) => ({
-              ...prev,
-              [folderId]: {
-                ...prev[folderId],
-                uploaded: prev[folderId].uploaded + 1,
-              },
-            }));
-
-            // Reset current file progress for this folder
-            setCurrentFileProgress((prev) => ({
-              ...prev,
-              [folderId]: 0,
-            }));
-            resolve();
-          }
-        );
-      });
-    }
-
-    // Update Firestore with the new files
-    const updatedFolders = folders.map((folder) =>
-      folder.id === folderId
-        ? {
-            ...folder,
-            files: [...folder.files, ...uploadedFiles],
-          }
-        : folder
-    );
-
-    await updateDoc(userDocRef, { folders: updatedFolders });
-
-    // Update the local state and reset upload status
-    setFolders(updatedFolders);
-    setUploadStatus((prev) => ({
-      ...prev,
-      [folderId]: { uploaded: 0, total: 0 },
-    }));
-
-  } catch (error) {
-    console.error('File upload error:', error);
-    alert('Failed to upload files.');
-  }
-};
-
-  
-
-  const handleFileUpload = async (folderId, file) => {
+  const handleMultipleFileUpload = async (folderId, files) => {
     try {
-      const userDocRef = doc(db, 'users', user.uid); // Reference to the user's document
-  
-      // Create a unique path in Firebase Storage for the file
-      const filePath = `${user.uid}/${folderId}/${file.name}`;
-      const storageRef = ref(storage, filePath);
-  
-      // Upload the file to Firebase Storage
-      const uploadResult = await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(uploadResult.ref); // Get the file's public URL
-  
-      // Update local folders state with the new file
-      const updatedFolders = folders.map((folder) =>
-        folder.id === folderId
-          ? {
-              ...folder,
-              files: [...folder.files, { name: file.name, url: downloadURL }],
+      const uploadedFiles = [];
+
+      // Initialize upload status for the folder
+      setUploadStatus((prev) => ({
+        ...prev,
+        [folderId]: { uploaded: 0, total: files.length },
+      }));
+
+      // Loop through each file and upload
+      for (const file of files) {
+        const filePath = `${user.email}/${folderId}/${file.name}`;
+        const storageRef = ref(storage, filePath);
+
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              // Update current file upload progress
+              const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+              setCurrentFileProgress((prev) => ({
+                ...prev,
+                [folderId]: progress,
+              }));
+            },
+            reject,
+            async () => {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              uploadedFiles.push({ name: file.name, url: downloadURL });
+
+              // Update uploaded count
+              setUploadStatus((prev) => ({
+                ...prev,
+                [folderId]: {
+                  ...prev[folderId],
+                  uploaded: prev[folderId].uploaded + 1,
+                },
+              }));
+
+              // Reset current file progress for this folder
+              setCurrentFileProgress((prev) => ({
+                ...prev,
+                [folderId]: 0,
+              }));
+
+              // Update the folder's files in Firestore
+              const folderRef = doc(db, 'folders', folderId);
+              await updateDoc(folderRef, {
+                files: arrayUnion({ name: file.name, url: downloadURL }),
+              });
+
+              // Update the local state
+              setFolders((prev) =>
+                prev.map((folder) =>
+                  folder.id === folderId
+                    ? { ...folder, files: [...folder.files, { name: file.name, url: downloadURL }] }
+                    : folder
+                )
+              );
+
+              resolve();
             }
-          : folder
-      );
-  
-      // Update the local state immediately to reflect changes in the UI
-      setFolders(updatedFolders);
-  
-      // Save the updated folders array to Firestore
-      await updateDoc(userDocRef, { folders: updatedFolders });
-  
+          );
+        });
+      }
+
+      // Reset upload status
+      setUploadStatus((prev) => ({
+        ...prev,
+        [folderId]: { uploaded: 0, total: 0 },
+      }));
 
     } catch (error) {
       console.error('File upload error:', error);
-      alert('Failed to upload file.');
+      alert('Failed to upload files.');
     }
   };
-  
-const handleCreateFolder = async () => {
-  const newFolder = {
-    id: folders.length + 1,
-    name: `Untitled Folder`,
-    files: [],
-  };
 
-  try {
-    const userDocRef = doc(db, 'users', user.uid); // Reference to the user's document
+  const handleCreateFolder = async (folderName) => {
+    const newFolder = {
+      name: folderName,
+      files: [],
+      taggedUsers: [],
+    };
 
-    // Check if the document exists
-    const userDocSnap = await getDoc(userDocRef);
+    try {
+      // Add folder to the folders collection
+      const folderRef = await addDoc(collection(db, 'folders'), newFolder);
 
-    if (userDocSnap.exists()) {
-      // Document exists: Update the folders array
-      await updateDoc(userDocRef, {
-        folders: arrayUnion(newFolder),
-      });
-    } else {
-      // Document does not exist: Create it with the initial folder
-      await setDoc(userDocRef, { folders: [newFolder] });
+      // Update user2folders collection (using email as the key)
+      const user2foldersRef = doc(db, 'user2folders', user.email);
+      const user2foldersSnap = await getDoc(user2foldersRef);
+
+      if (user2foldersSnap.exists()) {
+        await updateDoc(user2foldersRef, {
+          folderIds: arrayUnion(folderRef.id),
+        });
+      } else {
+        await setDoc(user2foldersRef, {
+          folderIds: [folderRef.id],
+        });
+      }
+
+      // Update local state
+      setFolders((prev) => [...prev, { id: folderRef.id, ...newFolder }]);
+    } catch (error) {
+      console.error('Firestore Write Error:', error);
     }
-
-    // Update local state
-    setFolders((prev) => [...prev, newFolder]);
-  } catch (error) {
-    console.error('Firestore Write Error:', error);
-  }
-};
-
-  const handleRenameFolder = async (folderId) => {
-    if (!newFolderName.trim()) return;
-  
-    const updatedFolders = folders.map((folder) =>
-      folder.id === folderId ? { ...folder, name: newFolderName } : folder
-    );
-  
-    setFolders(updatedFolders);
-  
-    const userDocRef = doc(db, 'users', user.uid);
-    await updateDoc(userDocRef, { folders: updatedFolders });
-  
-    setEditingFolderId(null);
-    setNewFolderName('');
   };
-  
+
+  const handleRenameFolder = async (folderId, newName) => {
+    try {
+      const folderRef = doc(db, 'folders', folderId);
+      await updateDoc(folderRef, { name: newName });
+
+      // Update local state
+      setFolders((prev) =>
+        prev.map((folder) =>
+          folder.id === folderId ? { ...folder, name: newName } : folder
+        )
+      );
+    } catch (error) {
+      console.error('Error renaming folder:', error);
+    }
+  };
+
   const handleRemoveFolder = async (folderId) => {
     const updatedFolders = folders.filter((folder) => folder.id !== folderId);
-  
+
     setFolders(updatedFolders);
-  
-    const userDocRef = doc(db, 'users', user.uid);
-    await updateDoc(userDocRef, { folders: updatedFolders });
+
+    // Remove folder from folders collection
+    const folderRef = doc(db, 'folders', folderId);
+    await deleteDoc(folderRef);
+
+    // Remove folder from user2folders collection
+    const user2foldersRef = doc(db, 'user2folders', user.email);
+    await updateDoc(user2foldersRef, {
+      folderIds: arrayRemove(folderId),
+    });
   };
 
   const handleDrop = (event, folderId) => {
@@ -635,7 +658,7 @@ const handleCreateFolder = async () => {
         className="flex justify-center mb-6"
       >
         <Button
-          onClick={handleCreateFolder}
+          onClick={() => setIsCreateFolderModalOpen(true)}
           className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 px-6 py-3 rounded-lg shadow-md"
         >
           <PlusIcon className="w-5 h-5" />
@@ -645,20 +668,63 @@ const handleCreateFolder = async () => {
 
       {/* Folder Grid */}
       <motion.div layout className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {folders.map((folder) => (
-        <ExpandableFolder
-          key={folder.id}
-          folder={folder}
-          onUpload={handleMultipleFileUpload}
-          currentFileProgress={currentFileProgress}
-          uploadStatus={uploadStatus}
-          isExpanded={expandedFolderId === folder.id}
-          onToggleExpand={setExpandedFolderId}
-          onUpdateSharing={handleUpdateSharing}
-        />
-      ))}
-    </motion.div>
+        {folders.map((folder) => (
+          <ExpandableFolder
+            key={folder.id}
+            folder={folder}
+            onUpload={handleMultipleFileUpload}
+            currentFileProgress={currentFileProgress}
+            uploadStatus={uploadStatus}
+            isExpanded={expandedFolderId === folder.id}
+            onToggleExpand={setExpandedFolderId}
+            onUpdateSharing={handleUpdateSharing}
+          />
+        ))}
+      </motion.div>
+
+      {/* Create Folder Modal */}
+      <AnimatePresence>
+        {isCreateFolderModalOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          >
+            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-gray-800">Create Folder</h2>
+                <button
+                  onClick={() => setIsCreateFolderModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <XIcon className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  placeholder="Enter folder name"
+                  className="w-full border rounded px-3 py-2"
+                />
+                <Button
+                  onClick={() => {
+                    handleCreateFolder(newFolderName);
+                    setIsCreateFolderModalOpen(false);
+                    setNewFolderName('');
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white w-full"
+                >
+                  Create
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-  
