@@ -30,7 +30,7 @@
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.473.0",
-    "next": "15.1.5",
+    "next": "14.1.0",
     "next-auth": "^4.24.11",
     "proj4leaflet": "^1.0.2",
     "react": "^19.0.0",
