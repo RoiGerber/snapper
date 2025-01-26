@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "vercel-build": "npm install && next build"
+    "vercel-build": "npm install --production=false && next build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -41,6 +41,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
     "react-leaflet": "^5.0.0",
+    "tailwindcss": "^3.4.17",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -52,7 +53,6 @@
     "eslint": "^9",
     "eslint-config-next": "^14.1.4",
     "postcss": "^8",
-    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }
