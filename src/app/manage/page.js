@@ -650,20 +650,13 @@ export default function Manage() {
         <p className="text-gray-600 mt-2">Organize your files effortlessly with modern tools.</p>
       </motion.div>
 
-      {/* Create Folder Button */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4 }}
         className="flex justify-center mb-6"
       >
-        <Button
-          onClick={() => setIsCreateFolderModalOpen(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 px-6 py-3 rounded-lg shadow-md"
-        >
-          <PlusIcon className="w-5 h-5" />
-          Create Folder
-        </Button>
+        {/* Removed Create Folder Button */}
       </motion.div>
 
       {/* Folder Grid */}
