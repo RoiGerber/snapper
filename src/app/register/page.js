@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -11,15 +10,16 @@ import {
   Eye, 
   EyeOff,
   ArrowRight,
-  Github,
   Mail as MailIcon,
   User,
-  Users
+  Users,
+  Phone
 } from 'lucide-react';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth, db } from '@/lib/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -118,6 +118,37 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(''); // New state for phone number
+  const [isGoogleUser, setIsGoogleUser] = useState(false); // New state to track Google user
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      console.error(result)
+      setEmail(user.email);
+      setIsGoogleUser(true);
+
+      // Check if phone number is provided
+      if (!user.phoneNumber) {
+        alert('Phone number is required.');
+        return;
+      }
+
+      // Save user to Firestore
+      await setDoc(doc(db, 'usersDB', user.email), {
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        role: userType,
+      });
+
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,45 +158,43 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
+    if (!isGoogleUser && password !== confirmPassword) {
+      alert('Passwords do not match.');
       return;
     }
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      await setDoc(doc(db, 'usersDB', email), {
-        email: user.email,
-        role: userType,
-      });
-
-      router.push('/');
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!userType) {
-      alert('Please select a role (Photographer or Client).');
+    if (!phoneNumber) {
+      alert('Phone number is required.');
       return;
     }
 
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
+    if (isGoogleUser) {
+      // Save Google user with phone number to Firestore
+      const user = auth.currentUser;
       await setDoc(doc(db, 'usersDB', user.email), {
         email: user.email,
+        phoneNumber,
         role: userType,
       });
 
       router.push('/');
-    } catch (error) {
-      alert(error.message);
+    } else {
+      // Handle email/password registration
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Save user to Firestore
+        await setDoc(doc(db, 'usersDB', user.email), {
+          email: user.email,
+          phoneNumber,
+          role: userType,
+        });
+
+        router.push('/');
+      } catch (error) {
+        console.error('Error creating user:', error);
+      }
     }
   };
 
@@ -211,24 +240,37 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             icon={Mail}
+            disabled={isGoogleUser}
           />
           
-          <InputField
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            icon={Lock}
-            showPasswordToggle
-          />
+          {!isGoogleUser && (
+            <>
+              <InputField
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                icon={Lock}
+                showPasswordToggle
+              />
+
+              <InputField
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm Password"
+                icon={Lock}
+                showPasswordToggle
+              />
+            </>
+          )}
 
           <InputField
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm Password"
-            icon={Lock}
-            showPasswordToggle
+            type="text"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="Phone Number"
+            icon={Phone} 
           />
 
           <div className="text-sm">
@@ -267,12 +309,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <SocialButton
-            icon={Github}
-            label="GitHub"
-            onClick={() => {}}
-          />
+        <div className="">
           <SocialButton
             icon={MailIcon}
             label="Google"
