@@ -356,7 +356,7 @@ const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus,
               : 'space-y-2 overflow-hidden'
           }`}
         >
-          {folder.files.map((file, index) => (
+          {(folder.files || []).map((file, index) => (
             <AnimatePresence mode="wait" key={index}>
               {isExpanded ? (
                 <FileCard file={file} />

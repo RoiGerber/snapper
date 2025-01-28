@@ -1,7 +1,8 @@
 "use client";
 
 import { db } from '../../lib/firebaseConfig';
-import { collection, getDocs, query, where  } from 'firebase/firestore';
+import { collection, doc, updateDoc, getDocs, getDoc, setDoc, query, where, arrayUnion } from 'firebase/firestore';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,7 +46,7 @@ const fetchCities = async () => {
   return records.map((record) => record[city_name_key].trim());
 };
 
-const EventCard = ({ event }) => (
+const EventCard = ({ event, onAcceptJob }) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 20 }}
@@ -57,7 +58,7 @@ const EventCard = ({ event }) => (
         <h2 className="font-bold text-xl text-indigo-800">{event.name}</h2>
         <p className="text-gray-600">{event.type}</p>
       </div>
-      <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+      <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onAcceptJob(event)}>
         <CameraIcon className="w-4 h-4 mr-2" />
         Accept Job
       </Button>
@@ -166,6 +167,99 @@ export default function EventMarketplace() {
     fetchEvents();
   }, []);
 
+  const handleAcceptJob = async (event) => {
+    if (event.status === 'accepted') return;
+
+    try {
+      const eventRef = doc(db, 'events', event.id);
+      const eventSnap = await getDoc(eventRef);
+      const eventData = eventSnap.data();
+
+
+      const user2eventRef = query(
+        collection(db, "user2event"),
+        where("userId", "==", event.user)
+      );
+      const user2eventSnap = await getDocs(user2eventRef); // Use getDocs() instead of getDoc()
+
+      // Check if we have results
+      if (!user2eventSnap.empty) {
+        // Since user2event is a collection, we need to get the first document
+        const user2eventData = user2eventSnap.docs[0].data();
+        const userId = user2eventData?.userId;
+
+        // Fetch the user's details (phone) from the usersDB collection
+        const userRef = doc(db, 'usersDB', userId);
+        const userSnap = await getDoc(userRef);
+        const userData = userSnap.data();
+        await updateDoc(eventRef, {
+          status: 'accepted',
+          photographerId: user.email,
+        });
+
+
+        // 2. Create a folder for the user if not already done
+        const folderId = `folder-${event.id}`; // A unique folder ID based on the event
+        const folderRef = doc(db, 'folders', folderId);
+        await setDoc(folderRef, {
+          eventId: event.id,
+          photographerId: user.email,
+          name: event.name,
+          createdAt: new Date(),
+        });
+
+        // 3. Update the user's folders in the user2folders collection
+        const user2foldersRef = doc(db, 'user2folders', user.email);
+        const user2foldersSnap = await getDoc(user2foldersRef);
+
+        if (user2foldersSnap.exists()) {
+          // If user already has folders, add the new folder ID
+          await updateDoc(user2foldersRef, {
+            folderIds: arrayUnion(folderId),
+          });
+        } else {
+          // If no folders, create the user2folders document and add the folderId
+          await setDoc(user2foldersRef, {
+            folderIds: [folderId],
+          });
+        }
+
+        // Show a message with user's contact details
+        // Construct contact details message
+        const contactDetailsMessage = `
+        פרטי קשר לאירוע:
+        שם מלא: ${eventData.contactName}
+        מספר טלפון: ${userData.phone}
+    `;
+
+
+        // Display the message to the user (could be an alert or a modal)
+        alert(contactDetailsMessage);
+
+        // After the message, redirect the user to the /manage page
+        setTimeout(() => {
+          // Redirect to the manage page after 3 seconds
+          window.location.href = '/manage';
+        }, 3000);
+        // Update the event state to reflect the change immediately
+        setEvents(prevEvents =>
+          prevEvents.map(e =>
+            e.id === event.id
+              ? { ...e, status: 'accepted', photographerId: user.id }
+              : e
+          )
+        );
+
+      } else {
+        console.error("No user found for the event.");
+      }
+
+    } catch (error) {
+      console.error('Error accepting job:', error);
+    }
+  };
+
+
   const handleFilterChange = (type, value) => {
     setFilters(prev => ({ ...prev, [type]: value }));
     setCurrentPage(1);
@@ -176,9 +270,9 @@ export default function EventMarketplace() {
     handleFilterChange(type, type === 'dateRange' ? { from: null, to: null } : '');
   };
 
-  const filteredEvents = useMemo(() => 
+  const filteredEvents = useMemo(() =>
     events.filter(event => {
-      const searchMatch = !filters.search || 
+      const searchMatch = !filters.search ||
         event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
         event.city.toLowerCase().includes(filters.search.toLowerCase());
 
@@ -191,12 +285,12 @@ export default function EventMarketplace() {
       const dateTo = filters.dateRange.to ? new Date(filters.dateRange.to) : null;
       const eventDate = new Date(event.date);
 
-      return searchMatch && cityMatch && regionMatch && 
+      return searchMatch && cityMatch && regionMatch &&
         (!dateFrom && !dateTo || eventDate >= dateFrom && eventDate <= dateTo);
-    }).sort((a, b) => sortOrder === 'date-asc' ? 
-      new Date(a.date) - new Date(b.date) : 
+    }).sort((a, b) => sortOrder === 'date-asc' ?
+      new Date(a.date) - new Date(b.date) :
       new Date(b.date) - new Date(a.date))
-  , [events, filters, sortOrder]);
+    , [events, filters, sortOrder]);
 
   const paginatedEvents = filteredEvents.slice(
     (currentPage - 1) * itemsPerPage,
@@ -280,7 +374,7 @@ export default function EventMarketplace() {
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {filters.dateRange?.from ? 
+                  {filters.dateRange?.from ?
                     filters.dateRange.to ?
                       `${filters.dateRange.from.toLocaleDateString()} - ${filters.dateRange.to.toLocaleDateString()}` :
                       filters.dateRange.from.toLocaleDateString() :
@@ -304,7 +398,7 @@ export default function EventMarketplace() {
             <div className="flex flex-wrap gap-2">
               {activeFilters.map(filter => (
                 <Badge key={filter} variant="secondary" className="px-3 py-1">
-                  {filter === 'dateRange' ? 
+                  {filter === 'dateRange' ?
                     `${filters.dateRange.from?.toLocaleDateString()} - ${filters.dateRange.to?.toLocaleDateString()}` :
                     filters[filter]}
                   <Button
@@ -353,9 +447,9 @@ export default function EventMarketplace() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {loadingEvents ? 
+          {loadingEvents ?
             Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />) :
-            paginatedEvents.map(event => <EventCard key={event.id} event={event} />)
+            paginatedEvents.map(event => <EventCard key={event.id} event={event} onAcceptJob={handleAcceptJob} />)
           }
         </div>
 
