@@ -6,9 +6,8 @@ import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebaseConfig";
 
 const ThankYouPage = () => {
-  const query = new URLSearchParams(window.location.search); // Use `window.location.search` for query params in a Client Component
-
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search); 
     const updateEventStatus = async () => {
       const orderId = query.get("Order"); // Extract `Order` parameter from the URL
       if (orderId) {
