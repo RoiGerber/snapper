@@ -115,20 +115,40 @@ export default function PostEvent() {
         createdAt: new Date()
       });
 
-      alert("Event posted successfully!");
 
-      // Reset form
-      setEventData({
-        name: "",
-        address: "",
-        city: "",
-        contactName: "",
-        date: null,
-        region: "",
-        type: "",
-        user: user.email,
+      // Call the Cloud Function
+      const cloudFunctionURL = "https://me-west1-leafy-metrics-260112.cloudfunctions.net/yaad-pay-function";
+      const requestBody = {
+        Order: eventRef.id,
+        Amount: eventData.amount || "400",
+        ClientName: eventData.contactName || "",
+        email: user.email,
+      };
+
+      const functionResponse = await fetch(cloudFunctionURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
-      setShowCustomType(false);
+
+      if (!functionResponse.ok) {
+        throw new Error(`Cloud Function Error: ${functionResponse.statusText}`);
+      }
+
+      // Get the raw response text
+      const responseText = await functionResponse.text();
+      console.log("Cloud Function response:", responseText);
+
+      // Construct the redirect URL
+      const redirectURL = `https://pay.hyp.co.il/p/?action=pay&${responseText}`;
+      console.log("Redirecting to:", redirectURL);
+
+      // Redirect the user
+      window.location.href = redirectURL;
+
+      //alert("Event posted successfully!");
     } catch (error) {
       console.error("Error posting event:", error);
       alert("Failed to post event. Please try again.");
