@@ -1,15 +1,19 @@
 "use client"; // This marks the file as a Client Component
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation"; // Use `next/navigation` in the App Router
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "../../lib/firebaseConfig";
 
 const ThankYouPage = () => {
+  const [orderId, setOrderId] = useState(null);
+
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search); 
+    const query = new URLSearchParams(window.location.search); // Extract query params only on the client
+    const orderId = query.get("Order"); // Extract `Order` parameter from the URL
+    setOrderId(orderId);
+
     const updateEventStatus = async () => {
-      const orderId = query.get("Order"); // Extract `Order` parameter from the URL
       if (orderId) {
         try {
           // Update the event status in Firestore
@@ -23,7 +27,9 @@ const ThankYouPage = () => {
       }
     };
 
-    updateEventStatus();
+    if (orderId) {
+      updateEventStatus();
+    }
   }, []); // Empty dependency array to run only once on mount
 
   return (
@@ -31,10 +37,10 @@ const ThankYouPage = () => {
       <div style={styles.container}>
         <h1 style={styles.header}>תודה על התשלום!</h1>
         <p style={styles.statusMessage}>
-          {query.get("Order") ? (
+          {orderId ? (
             <>
               התשלום שלך הושלם בהצלחה. <br />
-              מספר הזמנה: <strong>{query.get("Order")}</strong>
+              מספר הזמנה: <strong>{orderId}</strong>
             </>
           ) : (
             "אנחנו מעבדים את התשלום שלך. אנא המתן..."
