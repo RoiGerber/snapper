@@ -1,7 +1,7 @@
 "use client";
 
 import { db } from '../../lib/firebaseConfig';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where  } from 'firebase/firestore';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -154,7 +154,8 @@ export default function EventMarketplace() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'events'));
+        const q = query(collection(db, 'events'), where('status', '==', 'payed'));
+        const snapshot = await getDocs(q);
         setEvents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error('Error fetching events:', error);
