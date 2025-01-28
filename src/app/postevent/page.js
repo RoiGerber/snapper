@@ -21,6 +21,7 @@ import { motion } from "framer-motion";
 import { db } from "../../lib/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import useUserRole from '@/hooks/useUserRole';
+import { stat } from "fs";
 
 const regions = [
   "מרכז",
@@ -57,6 +58,7 @@ export default function PostEvent() {
     region: "",
     type: "",
     user: user?.email || "",
+    status: "submitted",
   });
   const [showCustomType, setShowCustomType] = useState(false);
 

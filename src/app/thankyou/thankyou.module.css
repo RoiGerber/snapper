@@ -1,0 +1,42 @@
+.thankyou-page {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    color: #28a745;
+  }
+  
+  .status-message {
+    font-size: 1.2rem;
+    margin: 20px 0;
+  }
+  
+  strong {
+    color: #007bff;
+  }
+  
+  .info {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-top: 20px;
+  }
+  
+  .info p {
+    margin: 10px 0;
+  }
+  
