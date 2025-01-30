@@ -38,7 +38,7 @@ function TestimonialCard({ name, role, content }) {
         <div className="bg-indigo-100 rounded-full w-10 h-10 flex items-center justify-center">
           <span className="text-indigo-600 font-semibold">{name[0]}</span>
         </div>
-        <div className="ml-3">
+        <div className="mr-3">
           <h4 className="font-semibold text-gray-900">{name}</h4>
           <p className="text-sm text-gray-500">{role}</p>
         </div>
@@ -50,33 +50,33 @@ function TestimonialCard({ name, role, content }) {
 function FeaturesSection() {
   const features = [
     {
-      title: 'Showcase Portfolios',
-      description: 'Create stunning visual stories that capture attention. Our platform offers beautiful templates and customization options.',
+      title: 'תיקי עבודות מרשימים',
+      description: 'צרו סיפורים חזותיים מרהיבים שמושכים תשומת לב. הפלטפורמה שלנו מציעה תבניות יפות ואפשרויות התאמה אישית.',
       icon: CameraIcon,
       color: 'from-blue-500 to-indigo-500'
     },
     {
-      title: 'Effortless Booking',
-      description: 'Smart scheduling system with automatic timezone detection and calendar integration for seamless coordination.',
+      title: 'הזמנה קלה',
+      description: 'מערכת תזמון חכמה עם זיהוי אזור זמן אוטומטי ואינטגרציה עם יומן לתיאום חלק.',
       icon: UserIcon,
       color: 'from-purple-500 to-pink-500'
     },
     {
-      title: 'Seamless Photo Sharing',
-      description: 'High-speed photo delivery with cloud storage and intelligent gallery organization tools.',
+      title: 'שיתוף תמונות חלק',
+      description: 'שליחת תמונות במהירות גבוהה עם אחסון בענן וכלי ארגון גלריה חכמים.',
       icon: ShareIcon,
       color: 'from-green-500 to-teal-500'
     },
     {
-      title: 'Instant Communication',
-      description: 'Real-time messaging with file sharing, typing indicators, and automated booking notifications.',
+      title: 'תקשורת מיידית',
+      description: 'הודעות בזמן אמת עם שיתוף קבצים, חיווי הקלדה והתראות הזמנה אוטומטיות.',
       icon: MessageSquareIcon,
       color: 'from-orange-500 to-red-500'
     },
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-indigo-50">
+    <section className="py-20 bg-gradient-to-b from-white to-indigo-50" dir="rtl">
       <div className="container mx-auto px-4">
         <motion.div 
           initial="initial"
@@ -86,10 +86,10 @@ function FeaturesSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Why Choose Snapper?
+            למה לבחור ב-Snapper?
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Join thousands of photographers and clients who trust Snapper for their photography needs
+            הצטרפו לאלפי צלמים ולקוחות שסומכים על Snapper לצרכי הצילום שלהם
           </p>
         </motion.div>
         
@@ -114,7 +114,7 @@ function FeaturesSection() {
                 variant="ghost"
                 className="text-indigo-600 hover:text-indigo-700 p-0 flex items-center"
               >
-                Learn more <ArrowRightIcon className="w-4 h-4 ml-2" />
+                למד עוד <ArrowRightIcon className="w-4 h-4 mr-2" />
               </Button>
             </motion.div>
           ))}
@@ -126,10 +126,9 @@ function FeaturesSection() {
 
 function HeroSection() {
   return (
-    <section className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden">
+    <section className="min-h-screen flex flex-col justify-center items-center relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50" />
       
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
@@ -149,18 +148,18 @@ function HeroSection() {
           className="inline-block mb-6"
         >
           <span className="px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold">
-            ✨ The Future of Photography Booking
+            ✨ העתיד של הזמנת צילומים
           </span>
         </motion.div>
         
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
           <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome to Snapper
+            ברוכים הבאים ל-Snapper
           </span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-          Connect with top photographers, manage bookings, and share memories seamlessly.
-          Join thousands of happy customers today!
+          התחברו עם צלמים מובילים, נהלו הזמנות ושתפו זכרונות בצורה חלקה.
+          הצטרפו לאלפי לקוחות מרוצים עוד היום!
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4 mb-12">
@@ -169,7 +168,7 @@ function HeroSection() {
               size="lg"
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-full shadow-lg transform transition hover:-translate-y-0.5"
             >
-              Get Started
+              התחל עכשיו
             </Button>
           </Link>
           <Link href="/login">
@@ -178,23 +177,23 @@ function HeroSection() {
               variant="outline"
               className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-full"
             >
-              Sign In
+              התחבר
             </Button>
           </Link>
         </div>
 
         <div className="flex items-center justify-center">
-          <div className="text-center ">
-            <div className="text-3xl font-bold text-gray-900" style={{marginRight:"5vh"}}>1000+</div>
-            <div className="text-gray-600" style={{marginRight:"4vh"}}>Photographers</div>
-          </div >
-          <div className="text-center " >
-            <div className="text-3xl font-bold text-gray-900" style={{marginRight:"5vh"}}>50k+</div>
-            <div className="text-gray-600" style={{marginRight:"5vh"}}>Happy Clients</div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+1000</div>
+            <div className="text-gray-600" style={{marginLeft:"4vh"}}>צלמים</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900" style={{marginRight:"5vh"}}>99%</div>
-            <div className="text-gray-600" style={{marginRight:"5vh"}}>Satisfaction</div>
+            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+50k</div>
+            <div className="text-gray-600" style={{marginLeft:"5vh"}}>לקוחות מרוצים</div>
+          </div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>99%</div>
+            <div className="text-gray-600" style={{marginLeft:"5vh"}}>שביעות רצון</div>
           </div>
         </div>
       </motion.div>
@@ -213,24 +212,24 @@ function HeroSection() {
 function TestimonialsSection() {
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "Professional Photographer",
-      content: "Snapper has transformed how I manage my photography business. The booking system is seamless!"
+      name: "שרה ג'ונסון",
+      role: "צלמת מקצועית",
+      content: "Snapper שינתה את האופן בו אני מנהלת את עסק הצילום שלי. מערכת ההזמנות חלקה!"
     },
     {
-      name: "Michael Chen",
-      role: "Client",
-      content: "Found an amazing photographer for my wedding through Snapper. The whole process was incredibly smooth."
+      name: "מייקל צ'ן",
+      role: "לקוח",
+      content: "מצאתי צלם מדהים לחתונה שלי דרך Snapper. כל התהליך היה חלק להפליא."
     },
     {
-      name: "Emma Davis",
-      role: "Portrait Photographer",
-      content: "The portfolio features and client communication tools are exactly what I needed for my business."
+      name: "אמה דייוויס",
+      role: "צלמת פורטרטים",
+      content: "תכונות תיק העבודות וכלי התקשורת עם הלקוחות הם בדיוק מה שהייתי צריכה לעסק שלי."
     }
   ];
 
   return (
-    <section className="py-20 bg-indigo-50">
+    <section className="py-20 bg-indigo-50" dir="rtl">
       <div className="container mx-auto px-4">
         <motion.div
           initial="initial"
@@ -240,10 +239,10 @@ function TestimonialsSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            What Our Users Say
+            מה המשתמשים שלנו אומרים
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Join our community of satisfied photographers and clients
+            הצטרפו לקהילה שלנו של צלמים ולקוחות מרוצים
           </p>
         </motion.div>
         
@@ -260,11 +259,11 @@ function TestimonialsSection() {
 export default function getStarted() {
   return (
     <DirectionProvider dir="rtl"> 
-    <main className="min-h-screen">
-      <HeroSection />
-      <FeaturesSection />
-      <TestimonialsSection />
-    </main>
+      <main className="min-h-screen">
+        <HeroSection />
+        <FeaturesSection />
+        <TestimonialsSection />
+      </main>
     </DirectionProvider>
   );
 }
