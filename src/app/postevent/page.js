@@ -142,7 +142,8 @@ export default function PostEvent() {
       const responseText = await functionResponse.text();
       console.log("Cloud Function response:", responseText);
 
-      // Construct the redirect URL
+      alert("הנך עומד לעבור לעמוד התשלום. התשלום יתבצע רק לאחר שתאשר את הסכם הצילום ותבחר צלם מקטלוג הצלמים שלנו.  עם זאת, כדי להבטיח את התחייבותך, נבקש כעת להשלים את הרכישה ולהזין את פרטי התשלום.");
+
       const redirectURL = `https://pay.hyp.co.il/p/?action=pay&${responseText}`;
       console.log("Redirecting to:", redirectURL);
 
