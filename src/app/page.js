@@ -67,7 +67,7 @@ const MainPage = () => {
 </h1>
         <p className="mt-2 md:mt-3 text-lg md:text-xl text-indigo-900/80 mx-auto max-w-xl">
           {role === 'photographer' 
-            ? 'תבנה ביחד אתנו את תיק העבודות שלך'
+            ? 'בונים ביחד אתנו את תיק העבודות שלך'
             : 'תעד את הרגעים החשובים שלך ותחווה אותם מחדש – צלם את האירוע שלך בעלות המשתלמת ביותר, עם צלמים שבונים את תיק העבודות שלהם יחד איתך.'}
         </p>
       </motion.div>
@@ -95,9 +95,9 @@ const PhotographerDashboard = () => {
       >
         <Link href="/marketplace" className="w-full h-full flex flex-col items-center justify-center text-center">
           <Camera className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">Marketplace</div>
+          <div className="text-white text-4xl font-bold mb-4">אירועים זמינים</div>
           <p className="text-white text-lg opacity-80">
-            Explore and showcase your work to potential clients.
+            בנה את תיק העבודות שלך, מצא בעל אירוע שמחפש צלם.
           </p>
         </Link>
       </motion.div>
@@ -109,9 +109,9 @@ const PhotographerDashboard = () => {
       >
         <Link href="/manage" className="w-full h-full flex flex-col items-center justify-center text-center">
           <Images className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">Manage</div>
+          <div className="text-white text-4xl font-bold mb-4">ניהול האירועים שלי</div>
           <p className="text-white text-lg opacity-80">
-            Organize your bookings, clients, and portfolio.
+            נהל את האירועים שלך, העלאת תמונות, פרטים ליצירת קשר ועוד.
           </p>
         </Link>
       </motion.div>

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, FileIcon, FileTextIcon, FileCodeIcon, FileVideoIcon, FileAudioIcon,XIcon } from 'lucide-react';
+import { DownloadIcon, FileIcon, FileTextIcon, FileCodeIcon, FileVideoIcon, FileAudioIcon, XIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth'; // Use your AuthContext
 import { useRouter } from 'next/navigation'; // For navigation
 import { doc, getDoc } from 'firebase/firestore';
-import { ref, getBlob,getDownloadURL } from 'firebase/storage';
+import { ref, getBlob, getDownloadURL } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
 import JSZip from 'jszip';
@@ -14,33 +14,33 @@ import { saveAs } from 'file-saver';
 
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-  
+
   // Image types
   const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
   if (imageTypes.includes(extension)) return 'image';
-  
+
   // Document types
   const documentTypes = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
   if (documentTypes.includes(extension)) return 'document';
-  
+
   // Code types
   const codeTypes = ['js', 'jsx', 'ts', 'tsx', 'html', 'css', 'json', 'py', 'java'];
   if (codeTypes.includes(extension)) return 'code';
-  
+
   // Video types
   const videoTypes = ['mp4', 'avi', 'mov', 'wmv', 'webm'];
   if (videoTypes.includes(extension)) return 'video';
-  
+
   // Audio types
   const audioTypes = ['mp3', 'wav', 'ogg', 'm4a'];
   if (audioTypes.includes(extension)) return 'audio';
-  
+
   return 'other';
 };
 
 const FileCard = ({ file }) => {
   const fileType = getFileType(file.name);
-  const truncatedName = file.name.length > 15 
+  const truncatedName = file.name.length > 15
     ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
     : file.name;
 
@@ -95,28 +95,28 @@ const FileCard = ({ file }) => {
 };
 
 const ExpandableFolder = ({ folder, isExpanded, onToggleExpand }) => {
- 
-    
-    const handleDownloadAll = async () => {
-        const zip = new JSZip();
-        const folderZip = zip.folder(folder.name);
-      
-        try {
-          // Loop through each file and add it to the zip
-          for (const file of folder.files) {
-            const fileRef = ref(storage, file.url);
-            const blob = await getBlob(fileRef); // Use Firebase SDK to get the file
-            folderZip.file(file.name, blob);
-          }
-      
-          // Generate the zip file and trigger download
-          const content = await zip.generateAsync({ type: 'blob' });
-          saveAs(content, `${folder.name}.zip`);
-        } catch (error) {
-          console.error('Error downloading files:', error);
-          alert('Failed to download files. Please try again.');
-        }
-      };
+
+
+  const handleDownloadAll = async () => {
+    const zip = new JSZip();
+    const folderZip = zip.folder(folder.name);
+
+    try {
+      // Loop through each file and add it to the zip
+      for (const file of folder.files) {
+        const fileRef = ref(storage, file.url);
+        const blob = await getBlob(fileRef); // Use Firebase SDK to get the file
+        folderZip.file(file.name, blob);
+      }
+
+      // Generate the zip file and trigger download
+      const content = await zip.generateAsync({ type: 'blob' });
+      saveAs(content, `${folder.name}.zip`);
+    } catch (error) {
+      console.error('Error downloading files:', error);
+      alert('Failed to download files. Please try again.');
+    }
+  };
 
   return (
     <motion.div
@@ -126,9 +126,8 @@ const ExpandableFolder = ({ folder, isExpanded, onToggleExpand }) => {
         gridColumn: isExpanded ? "1 / -1" : "auto",
         transition: { duration: 0.3 }
       }}
-      className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${
-        isExpanded ? 'h-[70vh] overflow-y-auto' : 'h-[200px] hover:scale-105'
-      }`}
+      className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${isExpanded ? 'h-[70vh] overflow-y-auto' : 'h-[200px] hover:scale-105'
+        }`}
     >
       {/* Close button when expanded */}
       {isExpanded && (
@@ -144,11 +143,10 @@ const ExpandableFolder = ({ folder, isExpanded, onToggleExpand }) => {
 
       {/* Folder Header */}
       <div className="flex justify-between items-center mb-4">
-        <motion.h2 
+        <motion.h2
           layout="position"
-          className={`font-bold text-indigo-800 truncate ${
-            isExpanded ? 'text-2xl' : 'text-lg'
-          }`}
+          className={`font-bold text-indigo-800 truncate ${isExpanded ? 'text-2xl' : 'text-lg'
+            }`}
         >
           {folder.name}
         </motion.h2>
@@ -162,13 +160,12 @@ const ExpandableFolder = ({ folder, isExpanded, onToggleExpand }) => {
       </div>
 
       {/* Files Grid/List */}
-      <motion.div 
+      <motion.div
         layout
-        className={`mt-4 ${
-          isExpanded 
-            ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4' 
+        className={`mt-4 ${isExpanded
+            ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4'
             : 'space-y-2 overflow-hidden'
-        }`}
+          }`}
       >
         {folder.files.map((file, index) => (
           <AnimatePresence mode="wait" key={index}>
@@ -182,7 +179,7 @@ const ExpandableFolder = ({ folder, isExpanded, onToggleExpand }) => {
                   rel="noopener noreferrer"
                   className="text-indigo-600 hover:underline"
                 >
-                  {file.name.length > 15 
+                  {file.name.length > 15
                     ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
                     : file.name}
                 </a>
@@ -250,7 +247,7 @@ export default function Gallery() {
 
   // Render a loading state if still verifying authentication
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>טוען...</div>;
   }
 
   // Render an empty page if unauthenticated (router.push will handle navigation)

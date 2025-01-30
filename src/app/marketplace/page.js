@@ -4,6 +4,7 @@ import { db } from '../../lib/firebaseConfig';
 import { collection, doc, updateDoc, getDocs, getDoc, setDoc, query, where, arrayUnion } from 'firebase/firestore';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { DirectionProvider } from '@radix-ui/react-direction';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -301,6 +302,7 @@ export default function EventMarketplace() {
   if (!user) return null;
 
   return (
+    <DirectionProvider dir="rtl"> 
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-24">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -308,10 +310,10 @@ export default function EventMarketplace() {
         className="text-center mb-12"
       >
         <h1 className="text-4xl font-extrabold text-indigo-800 mb-3">
-          Photography Events
+          אירועים זמינים
         </h1>
         <p className="text-gray-600">
-          Browse and accept photography opportunities in your area
+          בנה את תיק העבודות שלך, מצא בעל אירועי שמחפש צלם
         </p>
       </motion.div>
 
@@ -321,7 +323,7 @@ export default function EventMarketplace() {
             <div className="relative">
               <SearchIcon className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Search events..."
+                placeholder="חיפוש לפי שם האירוע"
                 className="pl-10"
                 value={filters.search}
                 onChange={e => handleFilterChange('search', e.target.value)}
@@ -331,7 +333,7 @@ export default function EventMarketplace() {
             <div className="relative">
               <SearchIcon className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Search city..."
+                placeholder="חיפוש לפי עיר"
                 className="pl-10"
                 value={filters.city}
                 onChange={e => handleFilterChange('city', e.target.value)}
@@ -340,7 +342,7 @@ export default function EventMarketplace() {
 
             <Select onValueChange={v => handleFilterChange('type', v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Event Type" />
+                <SelectValue placeholder="סוג האירוע" />
               </SelectTrigger>
               <SelectContent>
                 {eventTypes.map(type => (
@@ -354,18 +356,18 @@ export default function EventMarketplace() {
               onValueChange={v => setFilters(prev => ({ ...prev, region: v }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select Region" />
+                <SelectValue placeholder="איזור" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">All Regions</SelectItem>
-                  <SelectItem value="North">North</SelectItem>
-                  <SelectItem value="Haifa">Haifa</SelectItem>
-                  <SelectItem value="Center">Center</SelectItem>
-                  <SelectItem value="Tel Aviv">Tel Aviv</SelectItem>
-                  <SelectItem value="South">South</SelectItem>
-                  <SelectItem value="Judea and Samaria">Judea and Samaria</SelectItem>
-                  <SelectItem value="Jerusalem">Jerusalem</SelectItem>
+                  <SelectItem value="all">הכל</SelectItem>
+                  <SelectItem value="North">צפון</SelectItem>
+                  <SelectItem value="Haifa">חיפה</SelectItem>
+                  <SelectItem value="Center">מרכז</SelectItem>
+                  <SelectItem value="Tel Aviv">תל אביב</SelectItem>
+                  <SelectItem value="South">דרום</SelectItem>
+                  <SelectItem value="Judea and Samaria">יו"ש</SelectItem>
+                  <SelectItem value="Jerusalem">ירושלים</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -378,7 +380,7 @@ export default function EventMarketplace() {
                     filters.dateRange.to ?
                       `${filters.dateRange.from.toLocaleDateString()} - ${filters.dateRange.to.toLocaleDateString()}` :
                       filters.dateRange.from.toLocaleDateString() :
-                    'Select dates'}
+                    'בחר טווח תאריכים'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto z-[1000] p-0" align="start">
@@ -438,10 +440,9 @@ export default function EventMarketplace() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date-asc">Date: Earliest first</SelectItem>
-              <SelectItem value="date-desc">Date: Latest first</SelectItem>
-              <SelectItem value="name-asc">Name: A-Z</SelectItem>
-              <SelectItem value="name-desc">Name: Z-A</SelectItem>
+              <SelectItem value="date-asc">מיין לפי תאריף - הישן ביותר</SelectItem>
+              <SelectItem value="date-desc">מיין לפי תאריך - החדש ביותר</SelectItem>
+              <SelectItem value="name-asc">שם האירוע</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -477,7 +478,7 @@ export default function EventMarketplace() {
 
         {filteredEvents.length === 0 && !loadingEvents && (
           <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">No events match your filters</p>
+            <p className="text-gray-500 text-lg">לא נמצאו אירועים זמינים, נשמח שתבדוק אצלנו שוב מחר</p>
             <Button
               variant="link"
               onClick={() => {
@@ -492,11 +493,12 @@ export default function EventMarketplace() {
                 setCurrentPage(1);
               }}
             >
-              Clear all filters
+              מחק את כל הפילטרים
             </Button>
           </div>
         )}
       </div>
     </div>
+    </DirectionProvider>
   );
 }
