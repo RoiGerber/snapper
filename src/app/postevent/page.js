@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
+import { DirectionProvider } from '@radix-ui/react-direction';
 import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -21,6 +22,7 @@ import { motion } from "framer-motion";
 import { db } from "../../lib/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import useUserRole from '@/hooks/useUserRole';
+
 
 const regions = [
   "מרכז",
@@ -166,25 +168,26 @@ export default function PostEvent() {
   }
 
   return (
+    <DirectionProvider dir="rtl"> 
     <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-20 mt-20">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
       >
-        <h1 className="text-3xl font-bold text-indigo-800 mb-8">Post an Event</h1>
+        <h1 className="text-3xl font-bold text-indigo-800 mb-8">פרסום אירוע חדש</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Event Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Name
+              שם לאירוע, תעזור לנו לזהות אותו בקלות
             </label>
             <Input
               type="text"
               name="name"
               value={eventData.name}
               onChange={handleInputChange}
-              placeholder="Enter event name"
+              placeholder="הכנס שם לאירוע"
               required
               className="w-full"
             />
@@ -193,14 +196,14 @@ export default function PostEvent() {
           {/* Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Address
+              כתובת
             </label>
             <Input
               type="text"
               name="address"
               value={eventData.address}
               onChange={handleInputChange}
-              placeholder="Enter event address"
+              placeholder="הכנס את כתובת האירוע"
               required
               className="w-full"
             />
@@ -209,14 +212,14 @@ export default function PostEvent() {
           {/* City */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              City
+              עיר
             </label>
             <Input
               type="text"
               name="city"
               value={eventData.city}
               onChange={handleInputChange}
-              placeholder="Enter city"
+              placeholder="הכנס עיר"
               required
               className="w-full"
             />
@@ -225,14 +228,14 @@ export default function PostEvent() {
           {/* Contact Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contact Name
+              שם איש קשר
             </label>
             <Input
               type="text"
               name="contactName"
               value={eventData.contactName}
               onChange={handleInputChange}
-              placeholder="Enter contact name"
+              placeholder="הכנס שם איש קשר"
               required
               className="w-full"
             />
@@ -241,7 +244,7 @@ export default function PostEvent() {
           {/* Date Picker */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Date
+              תאריך האירוע
             </label>
             <Popover>
               <PopoverTrigger asChild>
@@ -253,7 +256,7 @@ export default function PostEvent() {
                   {eventData.date ? (
                     format(eventData.date, "PPP")
                   ) : (
-                    <span>Pick a date</span>
+                    <span>בחר תאריך</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -262,6 +265,9 @@ export default function PostEvent() {
                   mode="single"
                   selected={eventData.date}
                   onSelect={handleDateSelect}
+                  disabled={(date) =>
+                    date < new Date()
+                  }
                   initialFocus
                 />
               </PopoverContent>
@@ -270,8 +276,8 @@ export default function PostEvent() {
 
           {/* Region Selector */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Region
+            <label  className="block text-sm font-medium text-gray-700 mb-2">
+              איזור
             </label>
             <Select
               value={eventData.region}
@@ -281,7 +287,7 @@ export default function PostEvent() {
               required
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select region" />
+                <SelectValue placeholder="בחר איזור" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -298,7 +304,7 @@ export default function PostEvent() {
           {/* Event Type Selector */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Event Type
+              סוג האירוע
             </label>
             <Select
               value={eventData.type}
@@ -306,7 +312,7 @@ export default function PostEvent() {
               required
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select event type" />
+                <SelectValue placeholder="בחר סוג אירוע" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -334,11 +340,12 @@ export default function PostEvent() {
           {/* Submit Button */}
           <div className="flex justify-end">
             <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              Post Event
+              שלח
             </Button>
           </div>
         </form>
       </motion.div>
     </div>
+    </DirectionProvider>
   );
 }

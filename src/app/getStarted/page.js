@@ -12,6 +12,7 @@ import {
   ArrowRightIcon,
   StarIcon
 } from 'lucide-react';
+import { DirectionProvider } from '@radix-ui/react-direction';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -258,10 +259,12 @@ function TestimonialsSection() {
 
 export default function getStarted() {
   return (
+    <DirectionProvider dir="rtl"> 
     <main className="min-h-screen">
       <HeroSection />
       <FeaturesSection />
       <TestimonialsSection />
     </main>
+    </DirectionProvider>
   );
 }

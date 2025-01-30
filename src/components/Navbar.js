@@ -45,18 +45,10 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { href: '/', label: 'Home' },
-    {
-      label: 'Features',
-      children: [
-        { href: '/portfolio', label: 'Portfolio' },
-        { href: '/booking', label: 'Booking System' },
-        { href: '/sharing', label: 'Photo Sharing' },
-      ],
-    },
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/', label: 'דף הבית' },
+    { href: '/pricing', label: 'מחירים' },
+    { href: '/about', label: 'אודות' },
+    { href: '/contact', label: 'צור קשר' },
   ];
 
   const NavLink = ({ href, label, isActive, children }) => {
@@ -152,7 +144,7 @@ export default function Navbar() {
               {user ? (
                 <>
                   <span className="text-gray-700">
-                    Welcome, <b>{user.email}</b>
+                    שלום, <b>{user.email}</b>
                   </span>
                   <Button
                     onClick={handleLogout}
@@ -160,19 +152,19 @@ export default function Navbar() {
                     className="text-red-600 hover:text-red-700"
                   >
                     <LogOut className="w-5 h-5 mr-2" />
-                    Logout
+                    התנתק
                   </Button>
                 </>
               ) : (
                 <>
                   <Link href="/login">
                     <Button variant="ghost" className="text-indigo-600">
-                      Login
+                      התחבר
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button className="bg-indigo-600 text-white">
-                      Sign Up
+                      הרשמה
                     </Button>
                   </Link>
                 </>

@@ -83,7 +83,7 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
                   : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
     >
       <Camera className="w-6 h-6" />
-      <span className="font-medium">Photographer</span>
+      <span className="font-medium">צלם</span>
     </button>
     <button
       type="button"
@@ -94,7 +94,7 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
                   : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
     >
       <User className="w-6 h-6" />
-      <span className="font-medium">Client</span>
+      <span className="font-medium">לקוח</span>
     </button>
   </div>
 );
@@ -225,14 +225,14 @@ export default function RegisterPage() {
             </div>
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Create Account
+            צור חשבון
           </h2>
-          <p className="text-gray-500 mt-2">Join our community today</p>
+          <p className="text-gray-500 mt-2">הצטרף לקהילה שלנו היום</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">I am a...</label>
+            <label className="text-sm font-medium text-gray-700">אני..</label>
             <UserTypeSelector 
               selectedType={userType} 
               onChange={setUserType}
@@ -254,7 +254,7 @@ export default function RegisterPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder="סיסמא"
                 icon={Lock}
                 showPasswordToggle
               />
@@ -263,7 +263,7 @@ export default function RegisterPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm Password"
+                placeholder="אימות סיסמא"
                 icon={Lock}
                 showPasswordToggle
               />
@@ -274,7 +274,7 @@ export default function RegisterPage() {
             type="text"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Phone Number"
+            placeholder="מספר טלפון"
             icon={Phone} 
           />
 
@@ -282,13 +282,13 @@ export default function RegisterPage() {
             <label className="flex items-center gap-2">
               <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" required />
               <span className="text-gray-600">
-                I agree to the{' '}
+                אני מסכים ל{' '}
                 <Link href="/terms" className="text-indigo-600 hover:text-indigo-700">
-                  Terms of Service
+                  תנאי השירות
                 </Link>
-                {' '}and{' '}
+                {' '}ו{' '}
                 <Link href="/privacy" className="text-indigo-600 hover:text-indigo-700">
-                  Privacy Policy
+                  מדיניות הפרטיות
                 </Link>
               </span>
             </label>
@@ -300,7 +300,7 @@ export default function RegisterPage() {
                      hover:from-indigo-700 hover:to-purple-700 text-white py-3
                      rounded-xl flex items-center justify-center gap-2"
           >
-            Create Account
+            צור חשבון
             <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
@@ -310,7 +310,7 @@ export default function RegisterPage() {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            <span className="px-4 bg-white text-gray-500">או התחבר באמצעות</span>
           </div>
         </div>
 
@@ -323,12 +323,12 @@ export default function RegisterPage() {
         </div>
 
         <p className="text-sm text-center text-gray-500 mt-8">
-          Already have an account?{' '}
+        כבר יש לך חשבון?{' '}
           <Link 
             href="/login" 
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
-            Sign In
+            התחבר
           </Link>
         </p>
       </motion.div>

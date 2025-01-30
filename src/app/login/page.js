@@ -129,9 +129,9 @@ export default function LoginPage() {
             </div>
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome Back
+          ברוך שובך!
           </h2>
-          <p className="text-gray-500 mt-2">Please sign in to continue</p>
+          <p className="text-gray-500 mt-2">אנא התחבר כדי להמשיך.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -147,7 +147,7 @@ export default function LoginPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
+            placeholder="סיסמא"
             icon={Lock}
             showPasswordToggle
           />
@@ -155,10 +155,10 @@ export default function LoginPage() {
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2">
               <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" />
-              <span className="text-gray-600">Remember me</span>
+              <span className="text-gray-600">תזכור אותי לפעם הבאה</span>
             </label>
             <Link href="/forgot-password" className="text-indigo-600 hover:text-indigo-700">
-              Forgot password?
+              שכחת סיסמא?
             </Link>
           </div>
 
@@ -168,7 +168,7 @@ export default function LoginPage() {
                      hover:from-indigo-700 hover:to-purple-700 text-white py-3
                      rounded-xl flex items-center justify-center gap-2"
           >
-            Sign In
+            התחבר
             <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
@@ -178,16 +178,11 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">Or continue with</span>
+            <span className="px-4 bg-white text-gray-500">או התחבר באמצעות</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <SocialButton
-            icon={Github}
-            label="GitHub"
-            onClick={() => {}}
-          />
+        <div className="grid gap-4">
           <SocialButton
             icon={MailIcon}
             label="Google"
@@ -196,12 +191,12 @@ export default function LoginPage() {
         </div>
 
         <p className="text-sm text-center text-gray-500 mt-8">
-          Don't have an account?{' '}
+        אין לך חשבון עדיין?{' '}
           <Link 
             href="/register" 
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
-            Sign Up
+            הרשם
           </Link>
         </p>
       </motion.div>

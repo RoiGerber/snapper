@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Camera, Images, Settings, Calendar,Plus, CalendarPlus } from 'lucide-react';
+import { DirectionProvider } from '@radix-ui/react-direction';
+
 
 const MainPage = () => {
   const router = useRouter();
@@ -47,6 +49,7 @@ const MainPage = () => {
   }
 
   return (
+    <DirectionProvider dir="rtl">
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 p-4 md:p-32 relative overflow-hidden">
       <div className="fixed inset-0 overflow-hidden">
         {/* Existing blob background elements */}
@@ -60,12 +63,12 @@ const MainPage = () => {
         className="relative z-10 mb-8 text-center w-full"
       >
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mx-auto">
-  Welcome, {role?.charAt(0)?.toUpperCase() + role?.slice(1)}
+  ברוך הבא לסנאפפר
 </h1>
         <p className="mt-2 md:mt-3 text-lg md:text-xl text-indigo-900/80 mx-auto max-w-xl">
           {role === 'photographer' 
-            ? 'Manage your photography business with ease'
-            : 'Capture and relive your precious moments'}
+            ? 'תבנה ביחד אתנו את תיק העבודות שלך'
+            : 'תעד את הרגעים החשובים שלך ותחווה אותם מחדש – צלם את האירוע שלך בעלות המשתלמת ביותר, עם צלמים שבונים את תיק העבודות שלהם יחד איתך.'}
         </p>
       </motion.div>
 
@@ -75,6 +78,7 @@ const MainPage = () => {
         <ClientDashboard />
       )}
     </div>
+    </DirectionProvider>
   );
 
 
@@ -125,27 +129,12 @@ const ClientDashboard = () => {
       >
         <Link href="/postevent" className="w-full h-full flex flex-col items-center justify-center text-center">
           <CalendarPlus className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">Post Event</div>
+          <div className="text-white text-4xl font-bold mb-4">פרסום אירוע</div>
           <p className="text-white text-lg opacity-80">
-            Share your event photos and experiences.
+            חפש את הצלם לאירוע שלך.
           </p>
         </Link>
       </motion.div>
-
-      <motion.div
-        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-teal-600 to-cyan-600 transition-all duration-300 cursor-pointer mr-4"
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-      >
-        <Link href="/gallery" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <Images className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">Gallery</div>
-          <p className="text-white text-lg opacity-80">
-            Browse through your event photos and memories.
-          </p>
-        </Link>
-      </motion.div>
-
 
       <motion.div
         className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-green-600 to-green-500 transition-all duration-300 cursor-pointer mx-4"
@@ -156,9 +145,9 @@ const ClientDashboard = () => {
       >
         <Link href="/myevents" className="w-full h-full flex flex-col items-center justify-center text-center">
           <Calendar className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">My Events</div>
+          <div className="text-white text-4xl font-bold mb-4">האירועים שלי</div>
           <p className="text-white text-lg opacity-80">
-            Browse through your scheduled events.
+          עיין באירועים שלך.
           </p>
         </Link>
       </motion.div>
