@@ -532,11 +532,13 @@ export default function Manage() {
                 files: arrayUnion({ name: file.name, url: downloadURL }),
               });
 
-              // Update the local state
               setFolders((prev) =>
                 prev.map((folder) =>
                   folder.id === folderId
-                    ? { ...folder, files: [...folder.files, { name: file.name, url: downloadURL }] }
+                    ? { 
+                        ...folder, 
+                        files: Array.isArray(folder.files) ? [...folder.files, { name: file.name, url: downloadURL }] : [{ name: file.name, url: downloadURL }] 
+                      }
                     : folder
                 )
               );
@@ -591,38 +593,6 @@ export default function Manage() {
     }
   };
 
-  const handleRenameFolder = async (folderId, newName) => {
-    try {
-      const folderRef = doc(db, 'folders', folderId);
-      await updateDoc(folderRef, { name: newName });
-
-      // Update local state
-      setFolders((prev) =>
-        prev.map((folder) =>
-          folder.id === folderId ? { ...folder, name: newName } : folder
-        )
-      );
-    } catch (error) {
-      console.error('Error renaming folder:', error);
-    }
-  };
-
-  const handleRemoveFolder = async (folderId) => {
-    const updatedFolders = folders.filter((folder) => folder.id !== folderId);
-
-    setFolders(updatedFolders);
-
-    // Remove folder from folders collection
-    const folderRef = doc(db, 'folders', folderId);
-    await deleteDoc(folderRef);
-
-    // Remove folder from user2folders collection
-    const user2foldersRef = doc(db, 'user2folders', user.email);
-    await updateDoc(user2foldersRef, {
-      folderIds: arrayRemove(folderId),
-    });
-  };
-
   const handleDrop = (event, folderId) => {
     event.preventDefault();
     const files = Array.from(event.dataTransfer.files);
@@ -674,50 +644,26 @@ export default function Manage() {
           />
         ))}
       </motion.div>
-
-      {/* Create Folder Modal */}
-      <AnimatePresence>
-        {isCreateFolderModalOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          >
-            <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-800">Create Folder</h2>
-                <button
-                  onClick={() => setIsCreateFolderModalOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                >
-                  <XIcon className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <input
-                  type="text"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  placeholder="Enter folder name"
-                  className="w-full border rounded px-3 py-2"
-                />
-                <Button
-                  onClick={() => {
-                    handleCreateFolder(newFolderName);
-                    setIsCreateFolderModalOpen(false);
-                    setNewFolderName('');
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white w-full"
-                >
-                  Create
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
+
+const fetchEventDetails = async (eventId) => {
+  const eventRef = doc(db, "events", eventId);
+  const eventSnap = await getDoc(eventRef);
+  if (eventSnap.exists()) {
+    return eventSnap.data();
+  } else {
+    throw new Error("Event not found");
+  }
+};
+
+const fetchUserDetails = async (userId) => {
+  const userRef = doc(db, "usersDB", userId);
+  const userSnap = await getDoc(userRef);
+  if (userSnap.exists()) {
+    return userSnap.data();
+  } else {
+    throw new Error("User not found");
+  }
+};

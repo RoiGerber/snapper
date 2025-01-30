@@ -194,6 +194,11 @@ export default function RegisterPage() {
         router.push('/');
       } catch (error) {
         console.error('Error creating user:', error);
+        if (error.code === 'auth/email-already-in-use') {
+          alert('The email address is already in use. Please use a different email address.');
+        } else {
+          alert('An error occurred while creating the user. Please try again.');
+        }
       }
     }
   };
