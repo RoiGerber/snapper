@@ -172,18 +172,61 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Menu Button */}
+            {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="md:hidden p-2 rounded-lg focus:outline-none"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-600" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-600" />
-              )}
+              {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
             </button>
           </div>
         </div>
+        {/* Mobile Navigation Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="fixed top-16 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 h-auto flex flex-col items-center space-y-4 py-6"
+            >
+              {navItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="block text-gray-700 py-3 px-6 text-lg w-full text-center hover:bg-gray-100"
+                  onClick={() => setIsMobileMenuOpen(false)} // Close menu when clicking a link
+                >
+                  {item.label}
+                </Link>
+              ))}
+        
+              {/* User Authentication (Mobile) */}
+              {user ? (
+                <>
+                  <span className="text-gray-700">שלום, <b>{user.email}</b></span>
+                  <Button onClick={handleLogout} variant="outline" className="text-red-600 w-full">
+                    <LogOut className="w-5 h-5 mr-2" />
+                    התנתק
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" className="w-full text-center">
+                    <Button variant="ghost" className="w-full text-indigo-600">
+                      התחבר
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="w-full text-center">
+                    <Button className="w-full bg-indigo-600 text-white">
+                      הרשמה
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>     
       </motion.nav>
     </>
   );
