@@ -13,6 +13,8 @@ const UPSEND_PASSWORD = "7c05d46d-8e8b-45af-a48a-f10733aeb6dd";
 const UPSEND_API_URL = "https://capi.upsend.co.il/api/v2/SMS/SendSms";
 
 exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (event) => {
+    //temp to reduce cost 
+    return null;
     const beforeData = event.data.before.exists ? event.data.before.data() : null;
     const afterData = event.data.after.exists ? event.data.after.data() : null;
 
