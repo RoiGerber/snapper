@@ -30,6 +30,7 @@
     "dotenv": "^16.4.7",
     "file-saver": "^2.0.5",
     "firebase": "^11.2.0",
+    "firebase-functions": "^6.3.1",
     "framer-motion": "^11.18.2",
     "jszip": "^3.10.1",
     "leaflet": "^1.9.4",
@@ -41,8 +42,8 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.2.0",
     "react-leaflet": "^5.0.0",
-    "tailwindcss": "^3.4.17",
     "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {

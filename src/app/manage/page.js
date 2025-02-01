@@ -615,9 +615,9 @@ export default function Manage() {
         className="text-center mb-8"
       >
         <h1 className="text-4xl font-extrabold text-indigo-800" style={{ marginTop: '10vh' }}>
-          Manage Your Folders
+          ניהול האירועים שלי
         </h1>
-        <p className="text-gray-600 mt-2">Organize your files effortlessly with modern tools.</p>
+        <p className="text-gray-600 mt-2">העלאת התמונות לאחר האירוע, פרטים ליצירת קשר, ושיתוף התמונות</p>
       </motion.div>
 
       <motion.div
