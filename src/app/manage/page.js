@@ -454,7 +454,7 @@ export default function Manage() {
 
   // Render a loading state if still verifying authentication
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>טוען...</div>;
   }
 
   // Render an empty page if unauthenticated (router.push will handle navigation)

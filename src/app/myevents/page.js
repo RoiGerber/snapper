@@ -79,7 +79,7 @@ export default function MyEvents() {
   }, [user, isValidRole]);
 
   if (loading || roleLoading || loadingEvents) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">טוען...</div>;
   }
 
   if (!user || !isValidRole) {

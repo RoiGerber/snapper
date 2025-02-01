@@ -160,7 +160,7 @@ export default function PostEvent() {
   };
 
   if (loading || roleLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">טוען...</div>;
   }
 
   if (!user || !isValidRole) {

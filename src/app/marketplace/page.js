@@ -176,84 +176,37 @@ export default function EventMarketplace() {
       const eventSnap = await getDoc(eventRef);
       const eventData = eventSnap.data();
 
+      const clientRef = doc(db, 'usersDB', event.user);
+      const clientSnap = await getDoc(clientRef);
+      const clientData = clientSnap.data();
 
-      const user2eventRef = query(
-        collection(db, "user2event"),
-        where("userId", "==", event.user)
-      );
-      const user2eventSnap = await getDocs(user2eventRef); // Use getDocs() instead of getDoc()
+      
 
-      // Check if we have results
-      if (!user2eventSnap.empty) {
-        // Since user2event is a collection, we need to get the first document
-        const user2eventData = user2eventSnap.docs[0].data();
-        const userId = user2eventData?.userId;
-
-        // Fetch the user's details (phone) from the usersDB collection
-        const userRef = doc(db, 'usersDB', userId);
-        const userSnap = await getDoc(userRef);
-        const userData = userSnap.data();
-        await updateDoc(eventRef, {
-          status: 'accepted',
-          photographerId: user.email,
-        });
-
-
-        // 2. Create a folder for the user if not already done
-        const folderId = `folder-${event.id}`; // A unique folder ID based on the event
-        const folderRef = doc(db, 'folders', folderId);
-        await setDoc(folderRef, {
-          eventId: event.id,
-          photographerId: user.email,
-          name: event.name,
-          createdAt: new Date(),
-        });
-
-        // 3. Update the user's folders in the user2folders collection
-        const user2foldersRef = doc(db, 'user2folders', user.email);
-        const user2foldersSnap = await getDoc(user2foldersRef);
-
-        if (user2foldersSnap.exists()) {
-          // If user already has folders, add the new folder ID
-          await updateDoc(user2foldersRef, {
-            folderIds: arrayUnion(folderId),
-          });
-        } else {
-          // If no folders, create the user2folders document and add the folderId
-          await setDoc(user2foldersRef, {
-            folderIds: [folderId],
-          });
-        }
-
-        // Show a message with user's contact details
-        // Construct contact details message
-        const contactDetailsMessage = `
+      await updateDoc(eventRef, {
+        status: 'accepted',
+        photographerId: user.email,
+        updatedAt: new Date(),
+      });
+      const contactDetailsMessage = `
         פרטי קשר לאירוע:
         שם מלא: ${eventData.contactName}
-        מספר טלפון: ${userData.phone}
-    `;
-
-
-        // Display the message to the user (could be an alert or a modal)
-        alert(contactDetailsMessage);
-
-        // After the message, redirect the user to the /manage page
-        setTimeout(() => {
-          // Redirect to the manage page after 3 seconds
-          window.location.href = '/manage';
-        }, 3000);
-        // Update the event state to reflect the change immediately
-        setEvents(prevEvents =>
-          prevEvents.map(e =>
-            e.id === event.id
-              ? { ...e, status: 'accepted', photographerId: user.id }
-              : e
-          )
-        );
-
-      } else {
-        console.error("No user found for the event.");
-      }
+        מספר טלפון: ${clientData.phoneNumber}
+      `;
+      // Display the message to the user (could be an alert or a modal)
+      alert(contactDetailsMessage);
+      // After the message, redirect the user to the /manage page
+      setTimeout(() => {
+        // Redirect to the manage page after 3 seconds
+        window.location.href = '/manage';
+      }, 3000);
+      // Update the event state to reflect the change immediately
+      setEvents(prevEvents =>
+        prevEvents.map(e =>
+          e.id === event.id
+            ? { ...e, status: 'accepted', photographerId: user.id }
+            : e
+        )
+      );
 
     } catch (error) {
       console.error('Error accepting job:', error);
@@ -298,7 +251,7 @@ export default function EventMarketplace() {
     currentPage * itemsPerPage
   );
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>טוען...</div>;
   if (!user) return null;
 
   return (
