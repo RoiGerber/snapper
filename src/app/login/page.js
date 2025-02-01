@@ -14,7 +14,7 @@ import {
   Github,
   Mail as MailIcon
 } from 'lucide-react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
 import { useRouter } from 'next/navigation';
 
@@ -86,6 +86,21 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const checkGoogleSignIn = async (email) => {
+    try {
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      console.log('Sign-in methods:', signInMethods);
+      if (signInMethods.includes('google.com')) {
+        handleGoogleSignIn();
+      } else {
+        setError('המשתמש עם כתובת האימייל הזו לא רשום. אנא הירשם.');
+      }
+    } catch (error) {
+      console.log('Error checking sign-in methods:', error.message);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -93,10 +108,18 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/');
     } catch (error) {
-      alert(error.message);
+      if (error.message === 'Firebase: Error (auth/wrong-password).') {
+        await checkGoogleSignIn(email);
+      } else if (error.message === 'Firebase: Error (auth/user-not-found).') {
+        setError('המשתמש עם כתובת האימייל הזו לא רשום. אנא הירשם.');
+      } else if (error.message === 'Firebase: Error (auth/invalid-credential).') {
+        await checkGoogleSignIn(email);
+      } else {
+        console.log('Error logging in:', error.message);
+      }
     }
   };
-
+//Error logging in: Firebase: Error (auth/user-not-found).
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -151,6 +174,8 @@ export default function LoginPage() {
             icon={Lock}
             showPasswordToggle
           />
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2">
