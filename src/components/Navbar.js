@@ -243,12 +243,12 @@ export default function Navbar() {
               <>
                 <Link href="/myevents" className="w-full text-center">
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    My Events
+                    האירועים שלי
                   </Button>
                 </Link>
                 <Link href="/postevent" className="w-full text-center">
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    Post Event
+                  בקשת צלם לאירוע
                   </Button>
                 </Link>
               </>
@@ -257,12 +257,12 @@ export default function Navbar() {
               <>
                 <Link href="/marketplace" className="w-full text-center">
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    Marketplace
+                  מצא אירוע
                   </Button>
                 </Link>
                 <Link href="/manage" className="w-full text-center">
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    Manage
+                  ניהול האירועים שלי
                   </Button>
                 </Link>
               </>
