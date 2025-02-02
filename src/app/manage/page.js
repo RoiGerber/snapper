@@ -92,53 +92,58 @@ const FileCard = ({ file }) => {
   );
 };
 
-const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus, isExpanded, onToggleExpand }) => {
-  const [isTagListModalOpen, setIsTagListModalOpen] = useState(false);
+const ExpandableFolder = ({ 
+  folder, 
+  onUpload, 
+  currentFileProgress, 
+  uploadStatus, 
+  isExpanded, 
+  onToggleExpand,
+  onMarkComplete,
+  onMarkIncomplete
+}) => {
   console.log('Folder:', folder);
   const renderFolderHeader = () => (
     <div className="flex justify-between items-center mb-4">
       <motion.h2 
         layout="position"
-        className={`font-bold text-indigo-800 truncate ${
-          isExpanded ? 'text-2xl' : 'text-lg'
-        }`}
+        className={`font-bold text-indigo-800 truncate ${isExpanded ? 'text-2xl' : 'text-lg'}`}
       >
-      <span>{folder.name} - {folder.userDetails.phoneNumber}</span>
+        <span>{folder.name} - {folder.userDetails.phoneNumber}</span>
       </motion.h2>
       <div className="flex items-center gap-4">
-        <Button
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsTagListModalOpen(true);
-          }}
-          className="bg-indigo-100 hover:bg-indigo-200 text-indigo-600 p-2 rounded-full"
-        >
-          <UsersIcon className="w-4 h-4" />
-        </Button>
         <div>
-          <input
-            type="file"
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files);
-              if (files.length > 0) {
-                onUpload(folder.id, files);
-              }
-            }}
-            className="hidden"
-            id={`upload-${folder.id}`}
-          />
-          <label
-            htmlFor={`upload-${folder.id}`}
-            className="text-indigo-600 cursor-pointer hover:underline"
-          >
-            העלאת תמונות
-          </label>
+          {folder.status === 'uploaded' ? (
+            <span className="text-gray-400">
+              העלאת תמונות מושבתת (האירוע סגור)
+            </span>
+          ) : (
+            <>
+              <input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  if (files.length > 0) {
+                    onUpload(folder.id, files);
+                  }
+                }}
+                className="hidden"
+                id={`upload-${folder.id}`}
+              />
+              <label
+                htmlFor={`upload-${folder.id}`}
+                className="text-indigo-600 cursor-pointer hover:underline"
+              >
+                העלאת תמונות
+              </label>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
-
+  
   return (
     <>
       <motion.div
@@ -166,6 +171,38 @@ const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus,
 
         {/* Folder Header */}
         {renderFolderHeader()}
+
+        {(
+        <div className="mb-4">
+          {folder.status === 'uploaded' ? (
+            <>
+              <div className="text-sm text-green-700 mb-2">
+                האירוע הושלם וכל התמונות הועלו.
+              </div>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMarkIncomplete(folder.id);
+                }}
+                className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded"
+              >
+                אני מתחרט, יש לי תמונות נוספות להעלות
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkComplete(folder.id);
+              }}
+              className="bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded"
+            >
+              סיום העלאה – כל התמונות הועלו
+            </Button>
+          )}
+        </div>
+      )}
+
 
         {/* Progress Indicators */}
         {currentFileProgress[folder.id] > 0 && (
@@ -222,17 +259,6 @@ const ExpandableFolder = ({ folder, onUpload, currentFileProgress, uploadStatus,
           />
         )}
       </motion.div>
-
-      <AnimatePresence>
-        {isTagListModalOpen && (
-          <TagListModal
-            isOpen={isTagListModalOpen}
-            onClose={() => setIsTagListModalOpen(false)}
-            folder={folder}
-            onUpdateSharing={onUpdateSharing}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 };
@@ -369,6 +395,37 @@ const handleMultipleFileUpload = async (folderId, files) => {
     }
 };
 
+const handleMarkComplete = async (folderId) => {
+  try {
+    const folderRef = doc(db, 'events', folderId);
+    await updateDoc(folderRef, { status: 'uploaded' });
+    // Optionally update local state so the UI reflects the change:
+    setFolders((prev) =>
+      prev.map((folder) =>
+        folder.id === folderId ? { ...folder, status: 'uploaded' } : folder
+      )
+    );
+    console.log('הסטטוס עודכן ל-"uploaded" בהצלחה!');
+  } catch (error) {
+    console.error('Error marking folder as complete:', error);
+  }
+};
+
+const handleMarkIncomplete = async (folderId) => {
+  try {
+    const folderRef = doc(db, 'events', folderId);
+    await updateDoc(folderRef, { status: 'pending' }); // or remove/adjust the status as needed
+    setFolders((prev) =>
+      prev.map((folder) =>
+        folder.id === folderId ? { ...folder, status: 'pending' } : folder
+      )
+    );
+    console.log('סטטוס האירוע עודכן ל-"pending" בהצלחה!');
+  } catch (error) {
+    console.error('Error marking folder as incomplete:', error);
+  }
+};
+
 
 return (
   <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-8">
@@ -403,6 +460,8 @@ return (
           uploadStatus={uploadStatus}
           isExpanded={expandedFolderId === folder.id}
           onToggleExpand={setExpandedFolderId}
+          onMarkComplete={handleMarkComplete}
+          onMarkIncomplete={handleMarkIncomplete}
         />
       ))}
     </motion.div>
