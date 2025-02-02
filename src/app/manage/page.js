@@ -434,12 +434,17 @@ const fetchEventsByPhotographer = async (email) => {
   const eventsRef = collection(db, 'events');
   const q = query(eventsRef, where('photographerId', '==', email));
   const querySnapshot = await getDocs(q);
-  const events = [];
-  querySnapshot.forEach(async (doc) => {
-    console.log('doc:', doc.data());
-    const userDetails = await fetchUserDetails(doc.data().user);
+  
+  // Build an array of promises
+  const eventsPromises = querySnapshot.docs.map(async (docSnap) => {
+    const data = docSnap.data();
+    console.log('doc:', data);
+    const userDetails = await fetchUserDetails(data.user);
     console.log('userDetails:', userDetails);
-    events.push({ id: doc.id,userDetails: userDetails , ...doc.data() });
+    return { id: docSnap.id, userDetails, ...data };
   });
+  
+  // Wait for all promises to resolve
+  const events = await Promise.all(eventsPromises);
   return events;
 };
