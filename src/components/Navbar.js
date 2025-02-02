@@ -145,7 +145,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-2">
             <Camera className="w-8 h-8 text-indigo-600" />
             <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Snapper
+              Tsalamim
             </span>
           </Link>
 
