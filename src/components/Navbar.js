@@ -9,6 +9,8 @@ import { auth } from '@/lib/firebaseConfig'; // Import Firebase auth
 import { signOut } from 'firebase/auth'; // Import signOut
 import { useAuth } from '@/lib/auth'; // Import Auth Context
 import { useRouter } from 'next/navigation';
+import { getDoc, doc } from "firebase/firestore";
+import { db } from "@/lib/firebaseConfig"; // Adjust to your config path
 import {
   Menu,
   X,
@@ -23,6 +25,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null); // Add state for user role
   const { user } = useAuth(); // Get user from Auth Context
 
   useEffect(() => {
@@ -33,6 +36,27 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    // Fetch user role from Firestore when user is authenticated
+    const getUserRole = async (uid) => {
+      try {
+        const userRef = doc(db, "usersDB", uid);
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          setUserRole(userDoc.data().role); // Set role in state
+        } else {
+          console.error("No role found for user");
+        }
+      } catch (error) {
+        console.error("Error fetching role:", error.message);
+      }
+    };
+
+    if (user) {
+      getUserRole(user.email); // Fetch role when user is authenticated
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -102,132 +126,174 @@ export default function Navbar() {
   };
 
   return (
-    <>
-      <motion.nav
-        initial={false}
-        animate={{
-          backgroundColor: isScrolled
-            ? 'rgb(255, 255, 255)'
-            : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: isScrolled ? 'blur(12px)' : 'blur(8px)',
-          borderBottom: isScrolled
-            ? '1px solid rgb(226, 232, 240)'
-            : '1px solid transparent',
-        }}
-        className="fixed top-0 left-0 w-full z-50"
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <Camera className="w-8 h-8 text-indigo-600" />
-              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Snapper
-              </span>
-            </Link>
+    <motion.nav
+      initial={false}
+      animate={{
+        backgroundColor: isScrolled
+          ? 'rgb(255, 255, 255)'
+          : 'rgba(255, 255, 255, 0.9)',
+        backdropFilter: isScrolled ? 'blur(12px)' : 'blur(8px)',
+        borderBottom: isScrolled
+          ? '1px solid rgb(226, 232, 240)'
+          : '1px solid transparent',
+      }}
+      className="fixed top-0 left-0 w-full z-50"
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center space-x-2">
+            <Camera className="w-8 h-8 text-indigo-600" />
+            <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Snapper
+            </span>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-2">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.label}
-                  href={item.href}
-                  label={item.label}
-                  isActive={pathname === item.href}
-                  children={item.children}
-                />
-              ))}
-            </div>
-
-            {/* User Authentication */}
-            <div className="hidden md:flex items-center space-x-4">
-              {user ? (
-                <>
-                  <span className="text-gray-700">
-                    שלום, <b>{user.email}</b>
-                  </span>
-                  <Button
-                    onClick={handleLogout}
-                    variant="outline"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <LogOut className="w-5 h-5 mr-2" />
-                    התנתק
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login">
-                    <Button variant="ghost" className="text-indigo-600">
-                      התחבר
-                    </Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button className="bg-indigo-600 text-white">
-                      הרשמה
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 rounded-lg focus:outline-none"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
-            </button>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-2">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.label}
+                href={item.href}
+                label={item.label}
+                isActive={pathname === item.href}
+                children={item.children}
+              />
+            ))}
+            
+            {/* Conditional links based on role */}
+            {userRole === "client" && (
+              <>
+                <NavLink href="/myevents" label="האירועים שלי" />
+                <NavLink href="/postevent" label="בקשת צלם לאירוע" />
+              </>
+            )}
+            {userRole === "photographer" && (
+              <>
+                <NavLink href="/marketplace" label="מצא אירוע" />
+                <NavLink href="/manage" label="ניהול האירועים שלי" />
+              </>
+            )}
           </div>
-        </div>
-        {/* Mobile Navigation Menu */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="fixed top-16 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 h-auto flex flex-col items-center space-y-4 py-6"
-            >
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className="block text-gray-700 py-3 px-6 text-lg w-full text-center hover:bg-gray-100"
-                  onClick={() => setIsMobileMenuOpen(false)} // Close menu when clicking a link
+
+          {/* User Authentication */}
+          <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <>
+                <span className="text-gray-700">
+                  שלום, <b>{user.email}</b>
+                </span>
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="text-red-600 hover:text-red-700"
                 >
-                  {item.label}
-                </Link>
-              ))}
-        
-              {/* User Authentication (Mobile) */}
-              {user ? (
-                <>
-                  <span className="text-gray-700">שלום, <b>{user.email}</b></span>
-                  <Button onClick={handleLogout} variant="outline" className="text-red-600 w-full">
-                    <LogOut className="w-5 h-5 mr-2" />
-                    התנתק
+                  <LogOut className="w-5 h-5 mr-2" />
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button variant="ghost" className="text-indigo-600">
+                    התחבר
                   </Button>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" className="w-full text-center">
-                    <Button variant="ghost" className="w-full text-indigo-600">
-                      התחבר
-                    </Button>
-                  </Link>
-                  <Link href="/register" className="w-full text-center">
-                    <Button className="w-full bg-indigo-600 text-white">
-                      הרשמה
-                    </Button>
-                  </Link>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>     
-      </motion.nav>
-    </>
+                </Link>
+                <Link href="/register">
+                  <Button className="bg-indigo-600 text-white">
+                    הרשמה
+                  </Button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 rounded-lg focus:outline-none"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-16 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 h-auto flex flex-col items-center space-y-4 py-6"
+          >
+            {navItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="block text-gray-700 py-3 px-6 text-lg w-full text-center hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(false)} // Close menu when clicking a link
+              >
+                {item.label}
+              </Link>
+            ))}
+
+            {/* Conditional links based on role */}
+            {userRole === "client" && (
+              <>
+                <Link href="/myevents" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    My Events
+                  </Button>
+                </Link>
+                <Link href="/postevent" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    Post Event
+                  </Button>
+                </Link>
+              </>
+            )}
+            {userRole === "photographer" && (
+              <>
+                <Link href="/marketplace" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    Marketplace
+                  </Button>
+                </Link>
+                <Link href="/manage" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    Manage
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            {/* User Authentication (Mobile) */}
+            {user ? (
+              <>
+                <span className="text-gray-700">שלום, <b>{user.email}</b></span>
+                <Button onClick={handleLogout} variant="outline" className="text-red-600 w-full">
+                  <LogOut className="w-5 h-5 mr-2" />
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    התחבר
+                  </Button>
+                </Link>
+                <Link href="/register" className="w-full text-center">
+                  <Button className="w-full bg-indigo-600 text-white">
+                    הרשמה
+                  </Button>
+                </Link>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.nav>
   );
 }
