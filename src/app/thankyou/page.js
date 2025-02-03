@@ -18,9 +18,9 @@ const ThankYouPage = () => {
         try {
           // Update the event status in Firestore
           const eventRef = doc(db, "events", orderId);
-          await updateDoc(eventRef, { status: "payed" });
+          await updateDoc(eventRef, { status: "paid" });
 
-          console.log(`Event with Order ID ${orderId} marked as payed.`);
+          console.log(`Event with Order ID ${orderId} marked as paid.`);
         } catch (error) {
           console.error("Error updating event status:", error);
         }
