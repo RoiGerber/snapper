@@ -19,6 +19,9 @@ export default async function RootLayout({
   
   return (
     <html lang="he" dir="rtl">
+      <head>
+      <link href="https://fonts.googleapis.com/css2?family=Alef&display=swap" rel="stylesheet"/>
+      </head>
       <body>
         <AuthProvider>
           <Navbar />

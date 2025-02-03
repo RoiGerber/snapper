@@ -51,25 +51,25 @@ function FeaturesSection() {
   const features = [
     {
       title: 'תיקי עבודות מרשימים',
-      description: 'צרו סיפורים חזותיים מרהיבים שמושכים תשומת לב. הפלטפורמה שלנו מציעה תבניות יפות ואפשרויות התאמה אישית.',
+      description: 'צלמים בתחילת דרכם יכולים לבנות תיק עבודות מרשים ולהציג את עבודותיהם.',
       icon: CameraIcon,
       color: 'from-blue-500 to-indigo-500'
     },
     {
       title: 'הזמנה קלה',
-      description: 'מערכת תזמון חכמה עם זיהוי אזור זמן אוטומטי ואינטגרציה עם יומן לתיאום חלק.',
+      description:  'מערכת הזמנות חכמה, להתאמת צלם לאירוע שלך בקלות ובמהירות.',
       icon: UserIcon,
       color: 'from-purple-500 to-pink-500'
     },
     {
-      title: 'שיתוף תמונות חלק',
-      description: 'שליחת תמונות במהירות גבוהה עם אחסון בענן וכלי ארגון גלריה חכמים.',
+      title: 'צפייה והורדת התמונות מיד לאחר האירוע',
+      description: 'מיד לאחר האירוע הצלם מעלה את התמונות למערכת האתר והתמונות זמינות לצפייה והורדה מהענן.',
       icon: ShareIcon,
       color: 'from-green-500 to-teal-500'
     },
     {
       title: 'תקשורת מיידית',
-      description: 'הודעות בזמן אמת עם שיתוף קבצים, חיווי הקלדה והתראות הזמנה אוטומטיות.',
+      description: 'מיד לאחר ההזמנה תקבלו את פרטי הצלם ותוכלו לתקשר איתו ישירות, מערכת ההתראות תתזכר אתכם לקראת האירוע ולאחר העלאת התמונות.',
       icon: MessageSquareIcon,
       color: 'from-orange-500 to-red-500'
     },
@@ -110,12 +110,15 @@ function FeaturesSection() {
                 {feature.title}
               </h3>
               <p className="text-gray-600 mb-4">{feature.description}</p>
-              <Button
-                variant="ghost"
-                className="text-indigo-600 hover:text-indigo-700 p-0 flex items-center"
-              >
-                למד עוד <ArrowRightIcon className="w-4 h-4 mr-2" />
-              </Button>
+              <Link href="/how-it-works">
+                <Button 
+                  variant="ghost"
+                  className="text-indigo-600 hover:text-indigo-700 p-0 flex items-center"
+                >
+                  למד עוד <ArrowRightIcon className="w-4 h-4 mr-2" />
+                </Button>
+              </Link>
+              
             </motion.div>
           ))}
         </div>
@@ -153,12 +156,14 @@ function HeroSection() {
         </motion.div>
         
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-          <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent"  style={{ fontFamily: 'Alef, sans-serif' }}>
             ברוכים הבאים ל-Tsalamim
           </span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
-          התחברו עם צלמים מובילים, נהלו הזמנות ושתפו זכרונות בצורה חלקה.
+          אנחנו מחברים בין צלמים בתחילת דרכם לבין בעלי אירועים קטנים שרוצים לתעד את האירוע שלהם בלי להוציא סכומים גדולים.
+         <br/>
+         <br/>
           הצטרפו לאלפי לקוחות מרוצים עוד היום!
         </p>
         
@@ -212,19 +217,19 @@ function HeroSection() {
 function TestimonialsSection() {
   const testimonials = [
     {
-      name: "שרה ג'ונסון",
-      role: "צלמת מקצועית",
-      content: "Tsalamim שינתה את האופן בו אני מנהלת את עסק הצילום שלי. מערכת ההזמנות חלקה!"
+      name: "אביעד כלפה",
+      role: "מסיבת חינה",
+      content: "הזמנו צלם לחינה שלנו, והתמונות היו מדהימות, במחיר הכי זול שמצאתי."
     },
     {
-      name: "מייקל צ'ן",
-      role: "לקוח",
-      content: "מצאתי צלם מדהים לחתונה שלי דרך Tsalamim. כל התהליך היה חלק להפליא."
+      name: "מיכל סלע",
+      role: "לקוחה",
+      content: "הזמנו כבר לשלושה אירועים שונים והיינו מרוצים מאוד מהתוצאות."
     },
     {
-      name: "אמה דייוויס",
-      role: "צלמת פורטרטים",
-      content: "תכונות תיק העבודות וכלי התקשורת עם הלקוחות הם בדיוק מה שהייתי צריכה לעסק שלי."
+      name: "הילה נאור",
+      role: "צלמת אירועים",
+      content: "בתחילת דרכי בניתי את תיק העבדות שלי דרך Tsalamim, וזה היה הבחירה הכי טובה שלי."
     }
   ];
 
