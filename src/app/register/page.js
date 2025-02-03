@@ -13,22 +13,24 @@ import {
   Mail as MailIcon,
   User,
   Users,
-  Phone,
+  Phone
 } from 'lucide-react';
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
-  GoogleAuthProvider,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { deleteDoc } from 'firebase/firestore';
+import { deleteUser, signOut } from 'firebase/auth';
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 },
+  transition: { duration: 0.5 }
 };
 
 const InputField = ({
@@ -38,7 +40,7 @@ const InputField = ({
   placeholder,
   icon: Icon,
   showPasswordToggle = false,
-  disabled = false,
+  disabled = false
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputType = showPassword ? 'text' : type;
@@ -84,11 +86,9 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
       type="button"
       onClick={() => onChange('photographer')}
       className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all
-                  ${
-                    selectedType === 'photographer'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'
-                  }`}
+                ${selectedType === 'photographer'
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                  : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
     >
       <Camera className="w-6 h-6" />
       <span className="font-medium">צלם</span>
@@ -97,11 +97,9 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
       type="button"
       onClick={() => onChange('client')}
       className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all
-                  ${
-                    selectedType === 'client'
-                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                      : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'
-                  }`}
+                ${selectedType === 'client'
+                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                  : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
     >
       <User className="w-6 h-6" />
       <span className="font-medium">לקוח</span>
@@ -128,28 +126,34 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState(''); // New state for phone number
-  const [isGoogleUser, setIsGoogleUser] = useState(false); // Track if Google user
-  const [formError, setFormError] = useState(''); // Holds error message to display
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [showPhotographerModal, setShowPhotographerModal] = useState(false);
 
-  const handleGoogleSignIn = async () => {
+  // States for photographer additional details
+  const [cameraModel, setCameraModel] = useState('');
+  const [lensDetails, setLensDetails] = useState('');
+  const [age, setAge] = useState('');
+  const [professionalExperience, setProfessionalExperience] = useState('');
+
+  // This function completes registration by saving the initial user data.
+  const completeRegistration = async (userEmail) => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      
-      // Reset any previous errors
-      setFormError('');
-
-      // Set email from Google user (you may use it for backend storage)
-      setEmail(user.email);
-      setIsGoogleUser(true);
-
-      // Note: We are no longer checking for a phone number from the Google user.
-      // Instead, the form below will require the user to fill in a phone number.
+      await setDoc(doc(db, 'usersDB', userEmail), {
+        email: userEmail,
+        phoneNumber,
+        role: userType,
+      });
+      // If photographer, show the extra details modal.
+      if (userType === 'photographer') {
+        setShowPhotographerModal(true);
+      } else {
+        router.push('/');
+      }
     } catch (error) {
-      console.error('Error signing in with Google:', error);
-      setFormError('אירעה שגיאה במהלך התחברות עם גוגל. אנא נסה שוב.');
+      console.error('Error saving user:', error);
+      setFormError('אירעה שגיאה בעת יצירת החשבון. אנא נסה שוב.');
     }
   };
 
@@ -157,7 +161,6 @@ export default function RegisterPage() {
     e.preventDefault();
     setFormError('');
 
-    // Validate required fields
     if (!userType) {
       setFormError('אנא בחר תפקיד (צלם או לקוח).');
       return;
@@ -175,31 +178,19 @@ export default function RegisterPage() {
 
     try {
       if (isGoogleUser) {
-        // For Google user, the email and password fields are hidden.
         const user = auth.currentUser;
-        await setDoc(doc(db, 'usersDB', user.email), {
-          email: user.email,
-          phoneNumber,
-          role: userType,
-        });
+        await completeRegistration(user.email);
       } else {
-        // Handle email/password registration
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
         const user = userCredential.user;
-
-        await setDoc(doc(db, 'usersDB', user.email), {
-          email: user.email,
-          phoneNumber,
-          role: userType,
-        });
+        await completeRegistration(user.email);
       }
-      router.push('/');
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('Error during registration:', error);
       if (error.code === 'auth/email-already-in-use') {
         setFormError('כתובת האימייל בשימוש. אנא השתמש בכתובת אחרת.');
       } else {
@@ -208,16 +199,56 @@ export default function RegisterPage() {
     }
   };
 
+  // Function to handle submission of photographer extra details.
+  const handlePhotographerDetailsSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Update the existing user document with additional photographer details.
+      await setDoc(
+        doc(db, 'usersDB', isGoogleUser ? auth.currentUser.email : email),
+        {
+          cameraModel,
+          lensDetails,
+          age,
+          professionalExperience,
+          photographerDetailsCompleted: true,
+        },
+        { merge: true }
+      );
+      router.push('/');
+    } catch (error) {
+      console.error('Error saving photographer details:', error);
+      setFormError('אירעה שגיאה בעת עדכון פרטי הצלם. אנא נסה שוב.');
+    }
+  };
+
+  const handleSkipPhotographerDetails = async () => {
+    try {
+      // Delete the user's Firestore document.
+      await deleteDoc(
+        doc(db, 'usersDB', isGoogleUser ? auth.currentUser.email : email)
+      );
+      // Sign out the user.
+      await signOut(auth);
+      router.push('/');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setFormError('אירעה שגיאה בעת מחיקת המשתמש. אנא נסה שוב.');
+    }
+  };
+
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
       <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 to-purple-50" />
-
+      
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
       </div>
 
-      <motion.div
+      {/* Registration Form */}
+      <motion.div 
         className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 w-full max-w-md relative"
         initial="initial"
         animate="animate"
@@ -235,7 +266,6 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-2">הצטרף לקהילה שלנו היום</p>
         </div>
 
-        {/* Display error message (if any) */}
         {formError && (
           <p className="text-red-500 text-center mb-4 text-sm">{formError}</p>
         )}
@@ -246,7 +276,6 @@ export default function RegisterPage() {
             <UserTypeSelector selectedType={userType} onChange={setUserType} />
           </div>
 
-          {/* Only render the email input if not a Google user */}
           {!isGoogleUser && (
             <InputField
               type="email"
@@ -257,7 +286,6 @@ export default function RegisterPage() {
             />
           )}
 
-          {/* Only render password fields if not a Google user */}
           {!isGoogleUser && (
             <>
               <InputField
@@ -290,11 +318,7 @@ export default function RegisterPage() {
 
           <div className="text-sm">
             <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                className="rounded text-indigo-600 focus:ring-indigo-500"
-                required
-              />
+              <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" required />
               <span className="text-gray-600">
                 אני מסכים ל{' '}
                 <Link href="/terms" className="text-indigo-600 hover:text-indigo-700">
@@ -311,8 +335,8 @@ export default function RegisterPage() {
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 
-                       hover:from-indigo-700 hover:to-purple-700 text-white py-3
-                       rounded-xl flex items-center justify-center gap-2"
+                     hover:from-indigo-700 hover:to-purple-700 text-white py-3
+                     rounded-xl flex items-center justify-center gap-2"
           >
             צור חשבון
             <ArrowRight className="w-4 h-4" />
@@ -332,17 +356,100 @@ export default function RegisterPage() {
           <SocialButton
             icon={MailIcon}
             label="Google"
-            onClick={handleGoogleSignIn}
+            onClick={async () => {
+              const provider = new GoogleAuthProvider();
+              try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                // For Google users, simply set the email and mark as Google user.
+                setEmail(user.email);
+                setIsGoogleUser(true);
+              } catch (error) {
+                console.error('Error with Google sign in:', error);
+              }
+            }}
           />
         </div>
 
         <p className="text-sm text-center text-gray-500 mt-8">
           כבר יש לך חשבון?{' '}
-          <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+          <Link 
+            href="/login" 
+            className="text-indigo-600 hover:text-indigo-700 font-medium"
+          >
             התחבר
           </Link>
         </p>
       </motion.div>
+
+      {/* Photographer Extra Details Modal */}
+      {showPhotographerModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <motion.div 
+            className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md relative"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold mb-2">פרטי צלם נדרשים</h2>
+              <p className="text-gray-600">
+                כל צלם חייב להיות בעל מצלמת DSLR. אנא ספק את פרטי המצלמה והעדשות, גיל וניסיון מקצועי אם קיים.
+              </p>
+            </div>
+
+            <form onSubmit={handlePhotographerDetailsSubmit} className="space-y-4">
+              <InputField
+                type="text"
+                value={cameraModel}
+                onChange={(e) => setCameraModel(e.target.value)}
+                placeholder="דגם מצלמה"
+                icon={Camera}
+              />
+              <InputField
+                type="text"
+                value={lensDetails}
+                onChange={(e) => setLensDetails(e.target.value)}
+                placeholder="פרטי עדשות"
+                icon={Camera}
+              />
+              <InputField
+                type="number"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                placeholder="גיל"
+                icon={User}
+              />
+              <InputField
+                type="text"
+                value={professionalExperience}
+                onChange={(e) => setProfessionalExperience(e.target.value)}
+                placeholder="ניסיון מקצועי (אופציונלי)"
+                icon={Lock}
+              />
+
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 
+                         hover:from-indigo-700 hover:to-purple-700 text-white py-3
+                         rounded-xl flex items-center justify-center gap-2"
+              >
+                שלח פרטים
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </form>
+            {/* Extra option to skip providing photographer details */}
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={handleSkipPhotographerDetails}
+                className="text-sm text-indigo-600 hover:underline"
+              >
+               אוקי, הבנתי, זה לא בשבילי. 
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

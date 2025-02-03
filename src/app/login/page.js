@@ -185,6 +185,7 @@ export default function LoginPage() {
         setGoogleUserEmail(user.email);
         setIsGoogleUser(true);
         setIncompleteRegistration(true);
+        router.push('/register');
       }
     } catch (err) {
       setError(err.message);
