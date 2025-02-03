@@ -63,7 +63,7 @@ const MainPage = () => {
         className="relative z-10 mb-8 text-center w-full"
       >
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mx-auto">
-  ברוך הבא לסנאפפר
+  ברוך הבא לצלמים
 </h1>
         <p className="mt-2 md:mt-3 text-lg md:text-xl text-indigo-900/80 mx-auto max-w-xl">
           {role === 'photographer' 
