@@ -6,7 +6,7 @@ import { AuthProvider } from '@/lib/auth';
 const heebo = Heebo({ subsets: ['hebrew', 'latin'] })
 
 export const metadata = {
-  title: 'Snapper',
+  title: 'Tsalamim',
   description: 'connects photographers and their clients',
 }
 

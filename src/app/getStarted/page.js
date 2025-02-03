@@ -86,10 +86,10 @@ function FeaturesSection() {
           className="text-center mb-16"
         >
           <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            למה לבחור ב-Snapper?
+            למה לבחור ב-Tsalamim?
           </h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            הצטרפו לאלפי צלמים ולקוחות שסומכים על Snapper לצרכי הצילום שלהם
+            הצטרפו לאלפי צלמים ולקוחות שסומכים על Tsalamim לצרכי הצילום שלהם
           </p>
         </motion.div>
         
@@ -154,7 +154,7 @@ function HeroSection() {
         
         <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
           <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            ברוכים הבאים ל-Snapper
+            ברוכים הבאים ל-Tsalamim
           </span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 leading-relaxed">
@@ -214,12 +214,12 @@ function TestimonialsSection() {
     {
       name: "שרה ג'ונסון",
       role: "צלמת מקצועית",
-      content: "Snapper שינתה את האופן בו אני מנהלת את עסק הצילום שלי. מערכת ההזמנות חלקה!"
+      content: "Tsalamim שינתה את האופן בו אני מנהלת את עסק הצילום שלי. מערכת ההזמנות חלקה!"
     },
     {
       name: "מייקל צ'ן",
       role: "לקוח",
-      content: "מצאתי צלם מדהים לחתונה שלי דרך Snapper. כל התהליך היה חלק להפליא."
+      content: "מצאתי צלם מדהים לחתונה שלי דרך Tsalamim. כל התהליך היה חלק להפליא."
     },
     {
       name: "אמה דייוויס",
