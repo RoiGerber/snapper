@@ -3,19 +3,23 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { 
-  Camera, 
-  Mail, 
-  Lock, 
-  Eye, 
+import {
+  Camera,
+  Mail,
+  Lock,
+  Eye,
   EyeOff,
   ArrowRight,
   Mail as MailIcon,
   User,
   Users,
-  Phone
+  Phone,
 } from 'lucide-react';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from 'firebase/auth';
 import { auth, db } from '@/lib/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -24,16 +28,17 @@ import { useState } from 'react';
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5 }
+  transition: { duration: 0.5 },
 };
 
-const InputField = ({ 
-  type, 
-  value, 
-  onChange, 
-  placeholder, 
-  icon: Icon, 
-  showPasswordToggle = false 
+const InputField = ({
+  type,
+  value,
+  onChange,
+  placeholder,
+  icon: Icon,
+  showPasswordToggle = false,
+  disabled = false,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputType = showPassword ? 'text' : type;
@@ -48,10 +53,11 @@ const InputField = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl
-                 focus:ring-2 focus:ring-indigo-500 focus:border-transparent
-                 bg-gray-50 focus:bg-white transition-all duration-200
-                 placeholder-gray-400 text-gray-700"
+        disabled={disabled}
+        className={`w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl
+                  focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                  bg-gray-50 focus:bg-white transition-all duration-200
+                  placeholder-gray-400 text-gray-700 ${disabled ? 'bg-gray-100' : ''}`}
         required
       />
       {showPasswordToggle && (
@@ -59,7 +65,7 @@ const InputField = ({
           type="button"
           onClick={() => setShowPassword(!showPassword)}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400
-                   hover:text-gray-600 transition-colors"
+                     hover:text-gray-600 transition-colors"
         >
           {showPassword ? (
             <EyeOff className="w-5 h-5" />
@@ -78,9 +84,11 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
       type="button"
       onClick={() => onChange('photographer')}
       className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all
-                ${selectedType === 'photographer' 
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
-                  : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
+                  ${
+                    selectedType === 'photographer'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'
+                  }`}
     >
       <Camera className="w-6 h-6" />
       <span className="font-medium">צלם</span>
@@ -89,9 +97,11 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
       type="button"
       onClick={() => onChange('client')}
       className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all
-                ${selectedType === 'client' 
-                  ? 'border-indigo-500 bg-indigo-50 text-indigo-700' 
-                  : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'}`}
+                  ${
+                    selectedType === 'client'
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 hover:border-indigo-200 hover:bg-gray-50'
+                  }`}
     >
       <User className="w-6 h-6" />
       <span className="font-medium">לקוח</span>
@@ -99,13 +109,13 @@ const UserTypeSelector = ({ selectedType, onChange }) => (
   </div>
 );
 
-const SocialButton = ({ icon: Icon, label, onClick, variant = "outline" }) => (
+const SocialButton = ({ icon: Icon, label, onClick, variant = 'outline' }) => (
   <Button
     type="button"
     variant={variant}
     onClick={onClick}
     className="w-full flex items-center justify-center gap-2 py-3 border
-             border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+               border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
   >
     <Icon className="w-5 h-5" />
     <span>{label}</span>
@@ -119,7 +129,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [userType, setUserType] = useState('');
   const [phoneNumber, setPhoneNumber] = useState(''); // New state for phone number
-  const [isGoogleUser, setIsGoogleUser] = useState(false); // New state to track Google user
+  const [isGoogleUser, setIsGoogleUser] = useState(false); // Track if Google user
+  const [formError, setFormError] = useState(''); // Holds error message to display
 
   const handleGoogleSignIn = async () => {
     try {
@@ -127,78 +138,72 @@ export default function RegisterPage() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      console.error(result)
+      // Reset any previous errors
+      setFormError('');
+
+      // Set email from Google user (you may use it for backend storage)
       setEmail(user.email);
       setIsGoogleUser(true);
 
-      // Check if phone number is provided
-      if (!user.phoneNumber) {
-        alert('Phone number is required.');
-        return;
-      }
-
-      // Save user to Firestore
-      await setDoc(doc(db, 'usersDB', user.email), {
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: userType,
-      });
-
-      router.push('/');
+      // Note: We are no longer checking for a phone number from the Google user.
+      // Instead, the form below will require the user to fill in a phone number.
     } catch (error) {
       console.error('Error signing in with Google:', error);
+      setFormError('אירעה שגיאה במהלך התחברות עם גוגל. אנא נסה שוב.');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
 
+    // Validate required fields
     if (!userType) {
-      alert('Please select a role (Photographer or Client).');
-      return;
-    }
-
-    if (!isGoogleUser && password !== confirmPassword) {
-      alert('Passwords do not match.');
+      setFormError('אנא בחר תפקיד (צלם או לקוח).');
       return;
     }
 
     if (!phoneNumber) {
-      alert('Phone number is required.');
+      setFormError('אנא הזן מספר טלפון.');
       return;
     }
 
-    if (isGoogleUser) {
-      // Save Google user with phone number to Firestore
-      const user = auth.currentUser;
-      await setDoc(doc(db, 'usersDB', user.email), {
-        email: user.email,
-        phoneNumber,
-        role: userType,
-      });
+    if (!isGoogleUser && password !== confirmPassword) {
+      setFormError('הסיסמאות לא תואמות.');
+      return;
+    }
 
-      router.push('/');
-    } else {
-      // Handle email/password registration
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        // Save user to Firestore
+    try {
+      if (isGoogleUser) {
+        // For Google user, the email and password fields are hidden.
+        const user = auth.currentUser;
         await setDoc(doc(db, 'usersDB', user.email), {
           email: user.email,
           phoneNumber,
           role: userType,
         });
+      } else {
+        // Handle email/password registration
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
 
-        router.push('/');
-      } catch (error) {
-        console.error('Error creating user:', error);
-        if (error.code === 'auth/email-already-in-use') {
-          alert('The email address is already in use. Please use a different email address.');
-        } else {
-          alert('An error occurred while creating the user. Please try again.');
-        }
+        await setDoc(doc(db, 'usersDB', user.email), {
+          email: user.email,
+          phoneNumber,
+          role: userType,
+        });
+      }
+      router.push('/');
+    } catch (error) {
+      console.error('Error creating user:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setFormError('כתובת האימייל בשימוש. אנא השתמש בכתובת אחרת.');
+      } else {
+        setFormError('אירעה שגיאה בעת יצירת החשבון. אנא נסה שוב.');
       }
     }
   };
@@ -206,13 +211,13 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-purple-50 p-4">
       <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 to-purple-50" />
-      
+
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
       </div>
 
-      <motion.div 
+      <motion.div
         className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 w-full max-w-md relative"
         initial="initial"
         animate="animate"
@@ -230,31 +235,36 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-2">הצטרף לקהילה שלנו היום</p>
         </div>
 
+        {/* Display error message (if any) */}
+        {formError && (
+          <p className="text-red-500 text-center mb-4 text-sm">{formError}</p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">אני..</label>
-            <UserTypeSelector 
-              selectedType={userType} 
-              onChange={setUserType}
-            />
+            <UserTypeSelector selectedType={userType} onChange={setUserType} />
           </div>
 
-          <InputField
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            icon={Mail}
-            disabled={isGoogleUser}
-          />
-          
+          {/* Only render the email input if not a Google user */}
+          {!isGoogleUser && (
+            <InputField
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="כתובת אימייל"
+              icon={Mail}
+            />
+          )}
+
+          {/* Only render password fields if not a Google user */}
           {!isGoogleUser && (
             <>
               <InputField
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="סיסמא"
+                placeholder="סיסמה"
                 icon={Lock}
                 showPasswordToggle
               />
@@ -263,7 +273,7 @@ export default function RegisterPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="אימות סיסמא"
+                placeholder="אימות סיסמה"
                 icon={Lock}
                 showPasswordToggle
               />
@@ -275,18 +285,22 @@ export default function RegisterPage() {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="מספר טלפון"
-            icon={Phone} 
+            icon={Phone}
           />
 
           <div className="text-sm">
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="rounded text-indigo-600 focus:ring-indigo-500" required />
+              <input
+                type="checkbox"
+                className="rounded text-indigo-600 focus:ring-indigo-500"
+                required
+              />
               <span className="text-gray-600">
                 אני מסכים ל{' '}
                 <Link href="/terms" className="text-indigo-600 hover:text-indigo-700">
                   תנאי השירות
-                </Link>
-                {' '}ו{' '}
+                </Link>{' '}
+                ו{' '}
                 <Link href="/privacy" className="text-indigo-600 hover:text-indigo-700">
                   מדיניות הפרטיות
                 </Link>
@@ -297,8 +311,8 @@ export default function RegisterPage() {
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 
-                     hover:from-indigo-700 hover:to-purple-700 text-white py-3
-                     rounded-xl flex items-center justify-center gap-2"
+                       hover:from-indigo-700 hover:to-purple-700 text-white py-3
+                       rounded-xl flex items-center justify-center gap-2"
           >
             צור חשבון
             <ArrowRight className="w-4 h-4" />
@@ -314,7 +328,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <div className="">
+        <div>
           <SocialButton
             icon={MailIcon}
             label="Google"
@@ -323,11 +337,8 @@ export default function RegisterPage() {
         </div>
 
         <p className="text-sm text-center text-gray-500 mt-8">
-        כבר יש לך חשבון?{' '}
-          <Link 
-            href="/login" 
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
-          >
+          כבר יש לך חשבון?{' '}
+          <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
             התחבר
           </Link>
         </p>
