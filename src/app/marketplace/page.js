@@ -61,7 +61,7 @@ const EventCard = ({ event, onAcceptJob }) => (
       </div>
       <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => onAcceptJob(event)}>
         <CameraIcon className="w-4 h-4 mr-2" />
-        Accept Job
+        הרשם כצלם
       </Button>
     </div>
 

@@ -197,7 +197,7 @@ const ExpandableFolder = ({
               }}
               className="bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded"
             >
-              סיום העלאה – כל התמונות הועלו
+              סיים העלאת קבצים
             </Button>
           )}
         </div>
