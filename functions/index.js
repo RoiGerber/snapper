@@ -33,7 +33,7 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       return null;
     }
     const clientPhone = clientSnap.data().phoneNumber;
-    const message = `תודה על יצירת האירוע "${afterData.name}". האירוע נוצר במערכת, כעת עליך להזין פרטי אשראי.`;
+    const message = `תודה על יצירת האירוע "${afterData.name}". האירוע נוצר במערכת, כעת עליך להזין פרטי אשראי באתר.`;
     return sendSms(clientPhone, message);
   }
 
@@ -54,8 +54,8 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       photographersSnap.forEach(async (doc) => {
         const photographer = doc.data();
         if (photographer.phoneNumber) {
-          const message = `אירוע חדש "${afterData.name}" זמין! היכנס לפרטים והצטרף כצלם לאירוע.
-          https://tsalamim.com/marketplace`;
+            const message = `אירוע חדש "${afterData.name}" זמין! מיקום: ${afterData.location}. היכנס לפרטים והרשם כצלם לאירוע במהירות.
+            https://tsalamim.com/marketplace`;
           await sendSms(photographer.phoneNumber, message);
         }
       });
@@ -81,8 +81,8 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       const clientData = clientSnap.data();
 
       // Prepare messages (assumes that the photographer/client documents have fields for phoneNumber and contactDetails)
-      const clientMessage = `התאמה להצלם: לאירוע "${afterData.name}" קיבלנו צלם. פרטי הצלם: ${photographerData.contactDetails || ""}, טלפון: ${photographerData.phoneNumber}.`;
-      const photographerMessage = `הצלם, קיבלת אירוע "${afterData.name}". פרטי הלקוח: ${clientData.contactDetails || ""}, טלפון: ${clientData.phoneNumber}. פרטי האירוע: ${afterData.details || ""}.`;
+      const clientMessage = `נמצאה התאמה במערכת, הצלם ${photographerData.name} נרשם עבור האירוע "${afterData.name}". פרטים ליצירת קשר, מספר טלפון: ${photographerData.phoneNumber}.`;
+      const photographerMessage = `נרשמת במערכת כצלם עבור האירוע "${afterData.name}". אנא התקשר ללקוח במספר טלפון: ${clientData.phoneNumber}. שם הלקוח: ${afterData.contactName}.`;
       
       // Send SMS to both parties
       await sendSms(clientData.phoneNumber, clientMessage);
