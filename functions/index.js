@@ -55,7 +55,7 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
         const photographer = doc.data();
         if (photographer.phoneNumber) {
           const message = `אירוע חדש "${afterData.name}" זמין! היכנס לפרטים והצטרף כצלם לאירוע.
-          https://snapper.vercel.app/marketplace`;
+          https://tsalamim.com/marketplace`;
           await sendSms(photographer.phoneNumber, message);
         }
       });
@@ -142,7 +142,7 @@ async function sendSms(phone, message) {
         Data: {
           Message: message,
           Recipients: [{ Phone: phone }],
-          Settings: { Sender: "Snapper" },
+          Settings: { Sender: "Tsalamim" },
         },
       },
       {

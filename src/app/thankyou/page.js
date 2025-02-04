@@ -11,6 +11,8 @@ const ThankYouPage = () => {
   useEffect(() => {
     const query = new URLSearchParams(window.location.search); // Extract query params only on the client
     const orderId = query.get("Order"); // Extract `Order` parameter from the URL
+    const transactionId = query.get("Id"); // Extract transaction ID from `Id` parameter
+    
     setOrderId(orderId);
 
     const updateEventStatus = async () => {
@@ -18,9 +20,12 @@ const ThankYouPage = () => {
         try {
           // Update the event status in Firestore
           const eventRef = doc(db, "events", orderId);
-          await updateDoc(eventRef, { status: "paid" });
+          await updateDoc(eventRef, { 
+            status: "paid",
+            transaction_id: transactionId // Add transaction ID to document
+          });
 
-          console.log(`Event with Order ID ${orderId} marked as paid.`);
+          console.log(`Event with Order ID ${orderId} marked as paid. Transaction ID: ${transactionId}`);
         } catch (error) {
           console.error("Error updating event status:", error);
         }
