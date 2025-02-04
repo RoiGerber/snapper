@@ -198,7 +198,7 @@ export default function EventMarketplace() {
       setTimeout(() => {
         // Redirect to the manage page after 3 seconds
         window.location.href = '/manage';
-      }, 3000);
+      }, 2000);
       // Update the event state to reflect the change immediately
       setEvents(prevEvents =>
         prevEvents.map(e =>

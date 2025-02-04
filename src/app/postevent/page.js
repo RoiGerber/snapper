@@ -22,7 +22,14 @@ import { motion } from "framer-motion";
 import { db } from "../../lib/firebaseConfig";
 import { collection, addDoc } from "firebase/firestore";
 import useUserRole from '@/hooks/useUserRole';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 const regions = [
   "מרכז",
@@ -62,6 +69,8 @@ export default function PostEvent() {
     status: "submitted",
   });
   const [showCustomType, setShowCustomType] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -123,7 +132,7 @@ export default function PostEvent() {
       const cloudFunctionURL = "https://me-west1-leafy-metrics-260112.cloudfunctions.net/yaad-pay-function";
       const requestBody = {
         Order: eventRef.id,
-        Amount: eventData.amount || "400",
+        Amount: eventData.amount || "1",
         ClientName: eventData.contactName || "",
         email: user.email,
       };
@@ -144,13 +153,16 @@ export default function PostEvent() {
       const responseText = await functionResponse.text();
       console.log("Cloud Function response:", responseText);
 
-      alert("הנך עומד לעבור לעמוד התשלום. התשלום יתבצע רק לאחר שתאשר את הסכם הצילום ותבחר צלם מקטלוג הצלמים שלנו.  עם זאת, כדי להבטיח את התחייבותך, נבקש כעת להשלים את הרכישה ולהזין את פרטי התשלום.");
+      //alert("הנך עומד לעבור לעמוד התשלום. התשלום יתבצע רק לאחר שתאשר את הסכם הצילום ותבחר צלם מקטלוג הצלמים שלנו.  עם זאת, כדי להבטיח את התחייבותך, נבקש כעת להשלים את הרכישה ולהזין את פרטי התשלום.");
 
       const redirectURL = `https://pay.hyp.co.il/p/?action=pay&${responseText}`;
       console.log("Redirecting to:", redirectURL);
 
+      setRedirectUrl(redirectURL);
+      setShowPaymentDialog(true);
+
       // Redirect the user
-      window.location.href = redirectURL;
+      //window.location.href = redirectURL;
 
       //alert("Event posted successfully!");
     } catch (error) {
@@ -158,6 +170,34 @@ export default function PostEvent() {
       alert("Failed to post event. Please try again.");
     }
   };
+  // Add this handler for the dialog confirmation
+  const handlePaymentConfirmation = () => {
+    setShowPaymentDialog(false); // Close the dialog
+    window.location.href = redirectUrl; // Then redirect
+  };
+
+  // New confirmation content
+  const paymentConfirmationContent = (
+    <div className="space-y-4 text-right">
+      <p className="font-semibold text-lg">תודה על יצירת האירוע במערכת!</p>
+      
+      <p>הנך עומד לעבור לעמוד התשלום. שים לב:</p>
+      
+      <ul className="list-disc pr-4 space-y-2">
+        <li>התשלום יתבצע רק לאחר שתאשר את הסכם הצילום ותבחר צלם מקטלוג הצלמים שלנו</li>
+        <li>לצורך הבטחת ההתחייבות, נבקש כעת להשלים את הרכישה ולהזין את פרטי התשלום</li>
+      </ul>
+
+      <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-4">
+        <p className="font-medium text-yellow-800">חשוב לדעת:</p>
+        <p className="text-sm mt-2">
+          בהתאם להתחייבות שלנו עבורך, נדאג לצלם שיגיע לתעד את האירוע על הצד הטוב ביותר עם מצלמת DSLR מקצועית. 
+          המחיר הזול מתאפשר מכיוון שמדובר בצלמים בתחילת דרכם. השירות כולל צילום בלבד ללא עריכה או סינון תמונות. 
+          יחד נשאף להשיג את התוצאות הטובות ביותר תוך יצירת חיבור מיטבי בין הצלם המתחיל לבינך.
+        </p>
+      </div>
+    </div>
+  );
 
   if (loading || roleLoading) {
     return <div className="min-h-screen flex items-center justify-center">טוען...</div>;
@@ -168,7 +208,31 @@ export default function PostEvent() {
   }
 
   return (
-    <DirectionProvider dir="rtl"> 
+    <DirectionProvider dir="rtl">
+     <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>אישור מעבר לתשלום</DialogTitle>
+            <DialogDescription>
+              {paymentConfirmationContent}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              onClick={handlePaymentConfirmation}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              מעבר לעמוד התשלום
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPaymentDialog(false)}
+            >
+              ביטול
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-20 mt-20">
       <motion.div
         initial={{ opacity: 0, y: -20 }}

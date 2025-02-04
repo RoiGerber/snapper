@@ -87,6 +87,27 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       // Send SMS to both parties
       await sendSms(clientData.phoneNumber, clientMessage);
       await sendSms(photographerData.phoneNumber, photographerMessage);
+      if (!afterData.transaction_id) {
+        logger.error("Transaction ID is missing. Cannot commit transaction.");
+        return null;
+      }
+    
+      const hypParams = new URLSearchParams();
+      hypParams.append("action", "commitTrans");
+      hypParams.append("Masof", "5601886329");
+      hypParams.append("TransId", afterData.transaction_id);
+      hypParams.append("PassP", "yaad");
+    
+      try {
+        const hypResponse = await axios.post(
+          "https://pay.hyp.co.il/p/",
+          hypParams,
+          { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        );
+        logger.info("Hyp transaction committed successfully:", hypResponse.data);
+      } catch (error) {
+        logger.error("Failed to commit Hyp transaction:", error);
+      }
       return null;
     } else if (newStatus === "pending-upload") {
       // On the day of the event the status automatically changes to "pending-upload"
