@@ -4,16 +4,21 @@ import React from "react";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 const PricingPage = () => {
   const router = useRouter();
 
   return (
     <DirectionProvider dir="rtl">
-      <div style={styles.pricingPage}>
-        <div style={styles.container}>
-          <h1 style={styles.header}>מחירים</h1>
-          <p style={styles.description}>
+      <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-20 min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+        >
+          <h1 className="text-3xl font-bold text-indigo-800 mb-8">מחירים</h1>
+          <p className="text-lg text-gray-700 mb-6">
             המחיר הינו 450 ש"ח לאירוע.
             <br />
             המחיר כולל עלויות תפעול, אחזקת האתר ושמירת התמונות.
@@ -22,50 +27,18 @@ const PricingPage = () => {
             <br />
             מתוך סכום זה, 350 ש"ח מועברים ישירות לצלם עבור צילום האירוע עצמו.
           </p>
-          <Button
-            variant="contained"
-            color="primary"
-            style={styles.button}
-            onClick={() => router.push("/contact")}
-          >
-            צור קשר
-          </Button>
-        </div>
+          <div className="flex justify-end">
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              onClick={() => router.push("/contact")}
+            >
+              צור קשר
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </DirectionProvider>
   );
-};
-
-// Inline styles for the component
-const styles = {
-  pricingPage: {
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-    maxWidth: "600px",
-    textAlign: "center",
-  },
-  header: {
-    fontSize: "2.5rem",
-    color: "#28a745",
-  },
-  description: {
-    fontSize: "1.2rem",
-    color: "#6c757d",
-    margin: "20px 0",
-  },
-  button: {
-    marginTop: "20px",
-  },
 };
 
 export default PricingPage;
