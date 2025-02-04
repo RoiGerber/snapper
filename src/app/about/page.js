@@ -4,81 +4,54 @@ import React from "react";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 const AboutPage = () => {
   const router = useRouter();
-  
+
   return (
     <DirectionProvider dir="rtl">
-      <div style={styles.aboutPage}>
-        <div style={styles.container}>
-          <h1 style={styles.header}>קצת עלינו</h1>
-          <p style={styles.description}>
+      <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-6 sm:p-10 min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8"
+        >
+          <h1 className="text-2xl sm:text-3xl font-bold text-indigo-800 mb-6 text-center">
+            קצת עלינו
+          </h1>
+          <p className="text-base sm:text-lg text-gray-700 mb-4 leading-relaxed">
             ברוכים הבאים לצלמים! החזון שלנו הוא לחבר בין צלמים בתחילת דרכם לבעלי אירועים קטנים.
           </p>
-          <p style={styles.description}>
+          <p className="text-base sm:text-lg text-gray-700 mb-4 leading-relaxed">
             אנחנו עוזרים לבעלי אירועים לתעד את האירוע שלהם בלי להוציא אלפי שקלים על שם ומותג.
+            <br />
             <br />
             צוות הצלמים שלנו מורכב מצעירים חדורי מוטיבציה, בתחילת דרכם בעולם הצילום, בעלי מצלמת עדשה (DSLR) מקצועית - אותה הם יביאו כדי לתעד את האירוע שלך בצורה הטובה ביותר.
             <br />
+            <br />
             יש לך אירוע קטן שתרצה לתעד בלי לסנג'ר את החבר עם המצלמה? אנחנו הכתובת בשבילך.
+            <br />
             פרסם אירוע אצלנו באתר ותתחבר לצלם בתחילת דרכו לתיעוד האירוע.
-            <br />
-            <br />
+          </p>
+          <p className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed">
             שימו לב, השירות לא כולל עריכה או סינון של התמונות, התמונות מועלות לאתר מיד לאחר האירוע וניתן להוריד אותם מהאתר שלנו.
           </p>
-          <div style={styles.info}>
+          <div className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed">
             <p>אם יש לכם שאלות מוזמנים לפנות אלינו בעמוד צור קשר.</p>
           </div>
-          <Button
-            variant="contained"
-            color="primary"
-            style={styles.button}
-            onClick={() => router.push("/contact")}
-          >
-            צור קשר
-          </Button>
-        </div>
+          <div className="flex justify-center">
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
+              onClick={() => router.push("/contact")}
+            >
+              צור קשר
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </DirectionProvider>
   );
-};
-
-// Inline styles for the component
-const styles = {
-  aboutPage: {
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-    maxWidth: "600px",
-    textAlign: "center",
-  },
-  header: {
-    fontSize: "2.5rem",
-    color: "#28a745",
-  },
-  description: {
-    fontSize: "1.2rem",
-    color: "#6c757d",
-    margin: "20px 0",
-  },
-  info: {
-    fontSize: "1rem",
-    color: "#6c757d",
-    marginTop: "20px",
-  },
-  button: {
-    marginTop: "20px",
-  },
 };
 
 export default AboutPage;
