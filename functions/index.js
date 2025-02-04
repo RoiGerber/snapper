@@ -82,7 +82,7 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
 
       // Prepare messages (assumes that the photographer/client documents have fields for phoneNumber and contactDetails)
       const clientMessage = `נמצאה התאמה במערכת, הצלם ${photographerData.name} נרשם עבור האירוע "${afterData.name}". פרטים ליצירת קשר, מספר טלפון: ${photographerData.phoneNumber}.`;
-      const photographerMessage = `נרשמת במערכת כצלם עבור האירוע "${afterData.name}". אנא התקשר ללקוח במספר טלפון: ${clientData.phoneNumber}. שם הלקוח: ${afterData.contactName}.`;
+      const photographerMessage = `נרשמת במערכת כצלם עבור האירוע "${afterData.name}". אנא התקשר ללקוח במספר טלפון: ${clientData.phoneNumber}. שם הלקוח: ${afterData.contactName}. תאריך האירוע: ${afterData.date}. שעת האירוע: ${afterData.time}.`;
       
       // Send SMS to both parties
       await sendSms(clientData.phoneNumber, clientMessage);

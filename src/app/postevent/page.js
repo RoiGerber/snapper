@@ -31,6 +31,8 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 
+import { Label } from "@/components/ui/label";
+
 const regions = [
   "מרכז",
   "צפון",
@@ -65,6 +67,7 @@ export default function PostEvent() {
     date: null,
     region: "",
     type: "",
+    time: null,
     user: user?.email || "",
     status: "submitted",
   });
@@ -89,6 +92,10 @@ export default function PostEvent() {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEventData({ ...eventData, [name]: value });
+  };
+
+  const handleTimeChange = (e) => {
+    setEventData({ ...eventData, time: e.target.value });
   };
 
   const handleDateSelect = (date) => {
@@ -212,7 +219,7 @@ export default function PostEvent() {
      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>אישור מעבר לתשלום</DialogTitle>
+            <DialogTitle >אישור מעבר לתשלום</DialogTitle>
             <DialogDescription>
               {paymentConfirmationContent}
             </DialogDescription>
@@ -337,7 +344,17 @@ export default function PostEvent() {
               </PopoverContent>
             </Popover>
           </div>
-
+          <div className="grid gap-2">
+            <Label className="text-sm font-medium text-gray-700">שעת האירוע</Label>
+            <Input 
+              type="time" 
+              value={eventData.time}
+              onChange={handleTimeChange}
+              className="w-full"
+              required
+              step="900" // 15-minute increments
+            />
+          </div>
           {/* Region Selector */}
           <div>
             <label  className="block text-sm font-medium text-gray-700 mb-2">
