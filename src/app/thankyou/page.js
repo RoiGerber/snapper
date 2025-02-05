@@ -42,7 +42,7 @@ const ThankYouPage = () => {
       <div style={styles.container}>
         <h1 style={styles.header}>תודה על התשלום!</h1>
         <p style={styles.statusMessage}>
-          {orderId ? (
+          {transactionId ? (
             <>
               התשלום שלך הושלם בהצלחה. <br />
               מספר הזמנה: <strong>{orderId}</strong>
