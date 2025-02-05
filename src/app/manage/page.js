@@ -3,12 +3,19 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { PencilIcon, PlusIcon, XIcon, TrashIcon, FileIcon, UserPlusIcon, UsersIcon, FileTextIcon, FileCodeIcon, FileVideoIcon, FileAudioIcon } from 'lucide-react';
-import { useAuth } from '@/lib/auth'; // Use your AuthContext
-import { useRouter } from 'next/navigation'; // For navigation
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { useAuth } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDoc,
+  getDocs 
+} from 'firebase/firestore';
 
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
@@ -92,6 +99,7 @@ const FileCard = ({ file }) => {
   );
 };
 
+
 const ExpandableFolder = ({ 
   folder, 
   onUpload, 
@@ -102,81 +110,88 @@ const ExpandableFolder = ({
   onMarkComplete,
   onMarkIncomplete
 }) => {
-  console.log('Folder:', folder);
+  const handleContainerClick = (e) => {
+    const interactiveElements = ['BUTTON', 'A', 'INPUT', 'LABEL'];
+    if (interactiveElements.includes(e.target.tagName) || e.target.closest(interactiveElements.join(', '))) {
+      return;
+    }
+    
+    onToggleExpand(isExpanded ? null : folder.id);
+  };
+
   const renderFolderHeader = () => (
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4 relative">
+      {isExpanded && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute -top-6 right-0 p-1 md:p-2 rounded-full bg-gray-100 hover:bg-gray-200 z-10"
+          onClick={() => onToggleExpand(null)}
+        >
+          <XIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+        </motion.button>
+      )}
+      
       <motion.h2 
         layout="position"
-        className={`font-bold text-indigo-800 truncate ${isExpanded ? 'text-2xl' : 'text-lg'}`}
+        className="font-bold text-indigo-800 text-lg md:text-xl truncate w-full pr-4"
       >
         <span>{folder.name} - {folder.userDetails.phoneNumber}</span>
       </motion.h2>
-      <div className="flex items-center gap-4">
-        <div>
-          {folder.status === 'uploaded' ? (
-            <span className="text-gray-400">
-              העלאת תמונות מושבתת (האירוע סגור)
-            </span>
-          ) : (
-            <>
-              <input
-                type="file"
-                multiple
-                onChange={(e) => {
-                  const files = Array.from(e.target.files);
-                  if (files.length > 0) {
-                    onUpload(folder.id, files);
-                  }
-                }}
-                className="hidden"
-                id={`upload-${folder.id}`}
-              />
-              <label
-                htmlFor={`upload-${folder.id}`}
-                className="text-indigo-600 cursor-pointer hover:underline"
-              >
-                העלאת תמונות
-              </label>
-            </>
-          )}
-        </div>
+
+      
+      <div className="w-full md:w-auto flex items-center justify-end gap-2">
+        {folder.status === 'uploaded' ? (
+          <span className="text-gray-400 text-sm">
+            העלאת תמונות מושבתת (האירוע סגור)
+          </span>
+        ) : (
+          <>
+            <input
+              type="file"
+              multiple
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                  onUpload(folder.id, files);
+                }
+              }}
+              className="hidden"
+              id={`upload-${folder.id}`}
+            />
+            <label
+              htmlFor={`upload-${folder.id}`}
+              className="text-indigo-600 text-sm md:text-base cursor-pointer hover:underline px-2 py-1 bg-indigo-50 rounded-md"
+            >
+              העלאת תמונות
+            </label>
+          </>
+        )}
       </div>
     </div>
   );
-  
+
   return (
-    <>
-      <motion.div
-        layout
-        initial={false}
-        animate={{
-          gridColumn: isExpanded ? "1 / -1" : "auto",
-          transition: { duration: 0.3 }
-        }}
-        className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${
-          isExpanded ? 'h-[70vh] overflow-y-auto' : 'h-[200px] hover:scale-105'
-        }`}
-      >
-        {/* Close button when expanded */}
-        {isExpanded && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-            onClick={() => onToggleExpand(null)}
-          >
-            <XIcon className="w-5 h-5 text-gray-600" />
-          </motion.button>
-        )}
+    <motion.div
+      layout
+      initial={false}
+      animate={{
+        gridColumn: isExpanded ? "1 / -1" : "auto",
+        transition: { duration: 0.3 }
+      }}
+      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all cursor-pointer ${
+        isExpanded 
+          ? 'h-[80vh] overflow-y-auto' 
+          : 'h-[180px] md:h-[200px] hover:scale-[1.02] overflow-hidden'
+      }`}
+      onClick={handleContainerClick}
+    >
+      {renderFolderHeader()}
 
-        {/* Folder Header */}
-        {renderFolderHeader()}
-
-        {(
         <div className="mb-4">
           {folder.status === 'uploaded' ? (
-            <>
-              <div className="text-sm text-green-700 mb-2">
+            <div className="flex flex-col gap-2">
+              <div className="text-sm text-green-700 mb-1">
                 האירוע הושלם וכל התמונות הועלו.
               </div>
               <Button
@@ -184,82 +199,80 @@ const ExpandableFolder = ({
                   e.stopPropagation();
                   onMarkIncomplete(folder.id);
                 }}
-                className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded"
+                className="w-full md:w-auto text-xs md:text-sm bg-red-100 hover:bg-red-200 text-red-600 p-1 md:p-2 rounded"
               >
-                אני מתחרט, יש לי תמונות נוספות להעלות
+                יש לי תמונות נוספות להעלות
               </Button>
-            </>
+            </div>
           ) : (
             <Button
               onClick={(e) => {
                 e.stopPropagation();
                 onMarkComplete(folder.id);
               }}
-              className="bg-green-100 hover:bg-green-200 text-green-600 p-2 rounded"
+              className="w-full md:w-auto text-xs md:text-sm bg-green-100 hover:bg-green-200 text-green-600 p-1 md:p-2 rounded"
             >
               סיים העלאת קבצים
             </Button>
           )}
         </div>
-      )}
 
-
-        {/* Progress Indicators */}
         {currentFileProgress[folder.id] > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+          <div className="w-full bg-gray-200 rounded-full h-2 md:h-2.5 mt-2">
             <div
-              className="bg-green-500 h-2.5 rounded-full transition-all"
+              className="bg-green-500 h-full rounded-full transition-all"
               style={{ width: `${currentFileProgress[folder.id]}%` }}
             ></div>
           </div>
         )}
 
         {uploadStatus[folder.id]?.total > 0 && (
-          <div className="text-sm text-gray-600 mt-2">
-            Uploaded {uploadStatus[folder.id]?.uploaded} of {uploadStatus[folder.id]?.total} files
+          <div className="text-xs md:text-sm text-gray-600 mt-2">
+            הועלו {uploadStatus[folder.id]?.uploaded} מתוך {uploadStatus[folder.id]?.total} קבצים
           </div>
         )}
 
-        {/* Files Grid/List */}
-        <motion.div 
-          layout
-          className={`mt-4 ${
-            isExpanded 
-              ? 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4' 
-              : 'space-y-2 overflow-hidden'
-          }`}
-        >
-          {(folder.files || []).map((file, index) => (
-            <AnimatePresence mode="wait" key={index}>
-              {isExpanded ? (
-                <FileCard file={file} />
-              ) : (
-                <motion.div className="text-sm text-gray-700 truncate">
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-600 hover:underline"
-                  >
-                    {file.name.length > 15 
-                      ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
-                      : file.name}
-                  </a>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          ))}
-        </motion.div>
-
-        {/* Clickable overlay when not expanded */}
-        {!isExpanded && (
-          <div
-            className="absolute inset-0 cursor-pointer"
-            onClick={() => onToggleExpand(folder.id)}
-          />
-        )}
+<motion.div 
+        layout
+        className={`mt-4 ${
+          isExpanded 
+            ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4' 
+            : 'flex flex-col space-y-1 md:space-y-2 h-[calc(100%-140px)] overflow-y-auto'
+        }`}
+      >
+        {(folder.files || []).map((file, index) => (
+          <AnimatePresence mode="wait" key={index}>
+            {isExpanded ? (
+              <FileCard file={file} />
+            ) : (
+              <motion.div 
+                className="text-xs md:text-sm text-gray-700 truncate px-1"
+                title={file.name}
+              >
+                <a
+                  href={file.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline block truncate"
+                >
+                  {file.name.length > 20 
+                    ? file.name.slice(0, 15) + '...' + file.name.slice(file.name.lastIndexOf('.'))
+                    : file.name}
+                </a>
+                {/* File count badge in collapsed state */}
+      {!isExpanded && (folder.files || []).length > 0 && (
+        <div className="absolute bottom-2 right-2 bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-600">
+          {(folder.files || []).length} תמונות
+        </div>
+      )}
+              </motion.div>
+              
+            )}
+          </AnimatePresence>
+        ))}
       </motion.div>
-    </>
+    </motion.div>
+    
   );
 };
 
@@ -426,31 +439,23 @@ const handleMarkIncomplete = async (folderId) => {
   }
 };
 
-
 return (
-  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-8">
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-4 md:p-8">
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="text-center mb-8"
+      className="text-center mb-6 md:mb-8"
     >
-      <h1 className="text-4xl font-extrabold text-indigo-800" style={{ marginTop: '10vh' }}>
+      <h1 className="text-2xl md:text-4xl font-extrabold text-indigo-800" style={{ marginTop: '5vh' }}>
         ניהול האירועים שלי
       </h1>
-      <p className="text-gray-600 mt-2">העלאת התמונות לאחר האירוע, פרטים ליצירת קשר, ושיתוף התמונות</p>
+      <p className="text-gray-600 mt-2 text-sm md:text-base">
+        העלאת התמונות לאחר האירוע, פרטים ליצירת קשר, ושיתוף התמונות
+      </p>
     </motion.div>
 
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4 }}
-      className="flex justify-center mb-6"
-    >
-    </motion.div>
-
-    {/* Folder Grid */}
-    <motion.div layout className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
       {folders.map((folder) => (
         <ExpandableFolder
           key={folder.id}
@@ -489,21 +494,28 @@ const fetchUserDetails = async (userId) => {
   }
 };
 
+// Update the fetchEventsByPhotographer function
 const fetchEventsByPhotographer = async (email) => {
-  const eventsRef = collection(db, 'events');
-  const q = query(eventsRef, where('photographerId', '==', email));
-  const querySnapshot = await getDocs(q);
-  
-  // Build an array of promises
-  const eventsPromises = querySnapshot.docs.map(async (docSnap) => {
-    const data = docSnap.data();
-    console.log('doc:', data);
-    const userDetails = await fetchUserDetails(data.user);
-    console.log('userDetails:', userDetails);
-    return { id: docSnap.id, userDetails, ...data };
-  });
-  
-  // Wait for all promises to resolve
-  const events = await Promise.all(eventsPromises);
-  return events;
+  try {
+    const eventsRef = collection(db, 'events');
+    const q = query(eventsRef, where('photographerId', '==', email));
+    const querySnapshot = await getDocs(q);
+    
+    const eventsPromises = querySnapshot.docs.map(async (docSnap) => {
+      const data = docSnap.data();
+      const userDetails = await fetchUserDetails(data.user);
+      return { 
+        id: docSnap.id, 
+        userDetails, 
+        ...data,
+        // Convert Firestore Timestamp to JS Date if needed
+        date: data.date?.toDate() 
+      };
+    });
+    
+    return await Promise.all(eventsPromises);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    throw error;
+  }
 };
