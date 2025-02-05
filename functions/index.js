@@ -54,7 +54,7 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       photographersSnap.forEach(async (doc) => {
         const photographer = doc.data();
         if (photographer.phoneNumber) {
-            const message = `אירוע חדש "${afterData.name}" זמין! מיקום: ${afterData.location}. היכנס לפרטים והרשם כצלם לאירוע במהירות.
+            const message = `אירוע חדש "${afterData.name}" זמין! מיקום: ${afterData.address}, ${afterData.city}. היכנס לפרטים והרשם כצלם לאירוע במהירות.
             https://tsalamim.com/marketplace`;
           await sendSms(photographer.phoneNumber, message);
         }
@@ -81,7 +81,7 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       const clientData = clientSnap.data();
 
       // Prepare messages (assumes that the photographer/client documents have fields for phoneNumber and contactDetails)
-      const clientMessage = `נמצאה התאמה במערכת, הצלם ${photographerData.name} נרשם עבור האירוע "${afterData.name}". פרטים ליצירת קשר, מספר טלפון: ${photographerData.phoneNumber}.`;
+      const clientMessage = `נמצאה התאמה במערכת, הצלם ${photographerData.email} נרשם עבור האירוע "${afterData.name}". פרטים ליצירת קשר, מספר טלפון: ${photographerData.phoneNumber}.`;
       const photographerMessage = `נרשמת במערכת כצלם עבור האירוע "${afterData.name}". אנא התקשר ללקוח במספר טלפון: ${clientData.phoneNumber}. שם הלקוח: ${afterData.contactName}. תאריך האירוע: ${afterData.date}. שעת האירוע: ${afterData.time}.`;
       
       // Send SMS to both parties
