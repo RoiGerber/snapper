@@ -265,6 +265,9 @@ export default function RegisterPage() {
           </h2>
           <p className="text-gray-500 mt-2">הצטרף לקהילה שלנו היום</p>
         </div>
+        {isGoogleUser &&(
+            <p className="text-red-500 text-center mb-4 text-sm">השלם פרטי הרשמה</p>
+        )}
 
         {formError && (
           <p className="text-red-500 text-center mb-4 text-sm">{formError}</p>
@@ -342,7 +345,7 @@ export default function RegisterPage() {
             <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
-
+        {!isGoogleUser && (
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
@@ -351,7 +354,8 @@ export default function RegisterPage() {
             <span className="px-4 bg-white text-gray-500">או התחבר באמצעות</span>
           </div>
         </div>
-
+        )}
+        {!isGoogleUser && (
         <div>
           <SocialButton
             icon={MailIcon}
@@ -370,7 +374,7 @@ export default function RegisterPage() {
             }}
           />
         </div>
-
+        )}
         <p className="text-sm text-center text-gray-500 mt-8">
           כבר יש לך חשבון?{' '}
           <Link 
