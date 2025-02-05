@@ -88,11 +88,10 @@ export default function Navbar() {
         {href ? (
           <Link href={href}>
             <span
-              className={`px-4 py-2 rounded-full transition-all duration-200 ${
-                isActive
+              className={`px-4 py-2 rounded-full transition-all duration-200 ${isActive
                   ? 'text-indigo-600 bg-white'
                   : 'text-gray-700 hover:text-indigo-600'
-              }`}
+                }`}
             >
               {label}
             </span>
@@ -161,7 +160,7 @@ export default function Navbar() {
                 children={item.children}
               />
             ))}
-            
+
             {/* Conditional links based on role */}
             {userRole === "client" && (
               <>
@@ -242,28 +241,44 @@ export default function Navbar() {
             {/* Conditional links based on role */}
             {userRole === "client" && (
               <>
-                <Link href="/myevents" className="w-full text-center">
+                <Link
+                  href="/myevents"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button variant="ghost" className="w-full text-indigo-600">
                     האירועים שלי
                   </Button>
                 </Link>
-                <Link href="/postevent" className="w-full text-center">
+                <Link
+                  href="/postevent"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button variant="ghost" className="w-full text-indigo-600">
-                  בקשת צלם לאירוע
+                    בקשת צלם לאירוע
                   </Button>
                 </Link>
               </>
             )}
             {userRole === "photographer" && (
               <>
-                <Link href="/marketplace" className="w-full text-center">
+                <Link
+                  href="/marketplace"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button variant="ghost" className="w-full text-indigo-600">
-                  מצא אירוע
+                    מצא אירוע
                   </Button>
                 </Link>
-                <Link href="/manage" className="w-full text-center">
+                <Link
+                  href="/manage"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button variant="ghost" className="w-full text-indigo-600">
-                  ניהול האירועים שלי
+                    ניהול האירועים שלי
                   </Button>
                 </Link>
               </>
@@ -273,19 +288,34 @@ export default function Navbar() {
             {user ? (
               <>
                 <span className="text-gray-700">שלום, <b>{user.email}</b></span>
-                <Button onClick={handleLogout} variant="outline" className="text-red-600 w-full">
+                <Button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  variant="outline"
+                  className="text-red-600 w-full"
+                >
                   <LogOut className="w-5 h-5 mr-2" />
                   התנתק
                 </Button>
               </>
             ) : (
               <>
-                <Link href="/login" className="w-full text-center">
+                <Link
+                  href="/login"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button variant="ghost" className="w-full text-indigo-600">
                     התחבר
                   </Button>
                 </Link>
-                <Link href="/register" className="w-full text-center">
+                <Link
+                  href="/register"
+                  className="w-full text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   <Button className="w-full bg-indigo-600 text-white">
                     הרשמה
                   </Button>
