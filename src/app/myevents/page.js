@@ -153,26 +153,31 @@ const ExpandableEvent = ({
       layout
       initial={false}
       animate={{
-        // Instead of animating gridColumn, set it statically (see previous fix)
-        // style={{ gridColumn: isExpanded ? "1 / -1" : "auto" }}
         transition: { duration: 0.3 }
       }}
-      className={`relative border rounded-lg p-6 bg-white shadow-md transition-all ${isExpanded ? "h-[70vh] overflow-y-auto" : "h-auto"
-        }`}
+      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${
+        isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
+      }`}
     >
-      {/* Event Header (details) */}
+      {/* Event Header */}
       <div className="mb-4">
-        <h2 className="text-2xl font-semibold text-gray-800">{event.name}</h2>
-        <div className="grid grid-cols-2 gap-4 text-gray-600">
-          <div className="flex items-center">
-            <CalendarIcon className="h-5 w-5 mr-2 text-indigo-600" />
-            {event.date ? format(event.date?.toDate(), "PPP") : "No date set"}
+        <h2 className="text-xl md:text-2xl font-semibold text-gray-800 truncate">{event.name}</h2>
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-4 text-gray-600 mt-2">
+          <div className="flex items-center truncate">
+            <CalendarIcon className="h-5 w-5 mr-2 text-indigo-600 flex-shrink-0" />
+            <span className="break-words">
+              {new Date(event.date?.toDate()).toLocaleDateString('he-IL', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </span>
           </div>
-          <div className="flex items-center">
-            {/* Example for location */}
+          <div className="flex items-center truncate">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2 text-indigo-600"
+              className="h-5 w-5 mr-2 text-indigo-600 flex-shrink-0"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -182,23 +187,21 @@ const ExpandableEvent = ({
                 clipRule="evenodd"
               />
             </svg>
-            {event.city}, {event.region}
+            <span className="truncate">{event.city}, {event.region}</span>
           </div>
         </div>
       </div>
 
-      {/* Gallery / File Upload Section */}
+      {/* Gallery Section */}
       <div>
-        {/* Status action button */}
-        <div>
+        {/* Status message */}
+        <div className="mb-4">
           {event.status === "uploaded" ? (
-            <>
-              <div className="text-sm text-green-700 mb-2">
-                האירוע הושלם, כל התמונות הועלו על ידי הצלם. 
-              </div>
-            </>
+            <div className="text-sm text-green-700">
+              האירוע הושלם, כל התמונות הועלו על ידי הצלם.
+            </div>
           ) : (
-            <div className="text-sm text-green-700 mb-2">
+            <div className="text-sm text-yellow-600">
               ממתין להעלאת תמונות על ידי הצלם.
             </div>
           )}
@@ -208,33 +211,38 @@ const ExpandableEvent = ({
         {event.files && event.files.length > 0 ? (
           <motion.div
             layout
-            className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4"
           >
             {event.files.map((file, index) => (
               <FileCard key={index} file={file} />
             ))}
           </motion.div>
         ) : (
-          <p className="text-gray-500">No photos uploaded yet.</p>
+          <p className="text-gray-500 text-center py-4">לא הועלו תמונות עדיין.</p>
         )}
       </div>
-      {isDownloading ? (
-        <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 border-t-2 border-indigo-600 rounded-full animate-spin" />
-          <span>Downloading: {Math.round(downloadProgress)}%</span>
-        </div>
-      ) : (
+
+      {/* Download Section */}
+      {event.files && event.files.length > 0 && (
         <div className="mt-4">
-          <Button
-            onClick={handleDownloadAll}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            Download All
-          </Button>
+          {isDownloading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-5 h-5 border-t-2 border-indigo-600 rounded-full animate-spin" />
+              <span className="text-sm">הורדה: {Math.round(downloadProgress)}%</span>
+            </div>
+          ) : (
+            <Button
+              onClick={handleDownloadAll}
+              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
+              size="sm"
+            >
+              הורד הכל
+            </Button>
+          )}
         </div>
       )}
 
-      {/* Expand / Collapse toggle */}
+      {/* Expand/Collapse Controls */}
       {!isExpanded && (
         <div
           className="absolute inset-0 cursor-pointer"
@@ -245,16 +253,15 @@ const ExpandableEvent = ({
         <motion.button
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+          className="absolute top-2 right-2 p-1 md:p-2 rounded-full bg-gray-100 hover:bg-gray-200"
           onClick={() => onToggleExpand(null)}
         >
-          <XIcon className="w-5 h-5 text-gray-600" />
+          <XIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
         </motion.button>
       )}
     </motion.div>
   );
 };
-
 
 export default function MyEvents() {
   const { user, loading } = useAuth();
@@ -320,20 +327,20 @@ export default function MyEvents() {
   }
 
   return (
-    <div className=" bg-gradient-to-br from-purple-100 via-white to-purple-200 p-20 mt-20 min-h-screen">
+    <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-4 md:p-20 mt-16 md:mt-20 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
+        className="max-w-3xl mx-auto w-full bg-white rounded-xl shadow-lg p-4 md:p-8"
       >
-        <h1 className="text-3xl font-bold text-indigo-800 mb-8">האירועים שלי</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-indigo-800 mb-6">האירועים שלי</h1>
 
         {events.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-8">
             <p className="text-gray-600">לא נמצאו אירועים</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-4 md:space-y-8">
             {events.map((event) => (
               <ExpandableEvent
                 key={event.id}

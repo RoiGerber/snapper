@@ -143,7 +143,7 @@ export default function EventMarketplace() {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
 
-  const eventTypes = ['Wedding', 'Corporate', 'Birthday', 'Concert', 'Sports'];
+  const eventTypes = ['חתונה', 'כנס', 'יום הולדת', 'קונצרט', 'ספורט'];
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
