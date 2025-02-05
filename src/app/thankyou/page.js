@@ -7,6 +7,7 @@ import { db } from "../../lib/firebaseConfig";
 
 const ThankYouPage = () => {
   const [orderId, setOrderId] = useState(null);
+  const [transactionId, setTransactionId] = useState(null);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search); // Extract query params only on the client
@@ -14,6 +15,7 @@ const ThankYouPage = () => {
     const transactionId = query.get("Id"); // Extract transaction ID from `Id` parameter
     
     setOrderId(orderId);
+    setTransactionId(transactionId);
 
     const updateEventStatus = async () => {
       if (orderId) {
@@ -45,7 +47,7 @@ const ThankYouPage = () => {
           {transactionId ? (
             <>
               התשלום שלך הושלם בהצלחה. <br />
-              מספר הזמנה: <strong>{orderId}</strong>
+              מספר הזמנה: <strong>{transactionId}</strong>
             </>
           ) : (
             "אנחנו מעבדים את התשלום שלך. אנא המתן..."
