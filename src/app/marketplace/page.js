@@ -131,7 +131,6 @@ export default function EventMarketplace() {
     search: '',
     region: 'all',
     city: '',
-    type: '',
     dateRange: { from: null, to: null },
   });
 
@@ -142,8 +141,6 @@ export default function EventMarketplace() {
   const [cities, setCities] = useState([]);
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-
-  const eventTypes = ['חתונה', 'כנס', 'יום הולדת', 'קונצרט', 'ספורט'];
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -221,34 +218,61 @@ export default function EventMarketplace() {
   const handleFilterChange = (type, value) => {
     setFilters(prev => ({ ...prev, [type]: value }));
     setCurrentPage(1);
-    setActiveFilters(prev => value ? [...prev, type] : prev.filter(f => f !== type));
+    
+    // Update active filters with proper date range check
+    setActiveFilters(prev => {
+      if (type === 'dateRange') {
+        const hasValue = value?.from || value?.to;
+        return hasValue 
+          ? [...new Set([...prev, type])] // Ensure unique
+          : prev.filter(f => f !== type);
+      }
+      return value 
+        ? [...new Set([...prev, type])] 
+        : prev.filter(f => f !== type);
+    });
   };
+  
 
   const removeFilter = (type) => {
     handleFilterChange(type, type === 'dateRange' ? { from: null, to: null } : '');
   };
 
-  const filteredEvents = useMemo(() =>
-    events.filter(event => {
-      const searchMatch = !filters.search ||
-        event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        event.city.toLowerCase().includes(filters.search.toLowerCase());
+  // Update the date filtering logic in useMemo
+const filteredEvents = useMemo(() =>
+  events.filter(event => {
+    // Existing filters
+    const searchMatch = !filters.search ||
+      event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      event.city.toLowerCase().includes(filters.search.toLowerCase());
 
-      const cityMatch = !filters.city ||
-        event.city.toLowerCase().includes(filters.city.toLowerCase());
+    const cityMatch = !filters.city ||
+      event.city.toLowerCase().includes(filters.city.toLowerCase());
 
-      const regionMatch = filters.region === "all" || event.region === filters.region;
+    const regionMatch = filters.region === "all" || event.region === filters.region;
 
-      const dateFrom = filters.dateRange.from ? new Date(filters.dateRange.from) : null;
-      const dateTo = filters.dateRange.to ? new Date(filters.dateRange.to) : null;
-      const eventDate = new Date(event.date);
+    // Improved date filtering
+    const dateFrom = filters.dateRange?.from ? new Date(filters.dateRange.from) : null;
+    const dateTo = filters.dateRange?.to ? new Date(filters.dateRange.to) : null;
+    const eventDate = new Date(event.date?.toDate());
 
-      return searchMatch && cityMatch && regionMatch &&
-        (!dateFrom && !dateTo || eventDate >= dateFrom && eventDate <= dateTo);
-    }).sort((a, b) => sortOrder === 'date-asc' ?
-      new Date(a.date) - new Date(b.date) :
-      new Date(b.date) - new Date(a.date))
-    , [events, filters, sortOrder]);
+    let dateMatch = true;
+    if (dateFrom || dateTo) {
+      dateMatch = false;
+      if (dateFrom && dateTo) {
+        dateMatch = eventDate >= dateFrom && eventDate <= dateTo;
+      } else if (dateFrom) {
+        dateMatch = eventDate >= dateFrom;
+      } else if (dateTo) {
+        dateMatch = eventDate <= dateTo;
+      }
+    }
+
+    return searchMatch && cityMatch && regionMatch && dateMatch;
+  }).sort((a, b) => sortOrder === 'date-asc' ?
+    new Date(a.date) - new Date(b.date) :
+    new Date(b.date) - new Date(a.date))
+, [events, filters, sortOrder]);
 
   const paginatedEvents = filteredEvents.slice(
     (currentPage - 1) * itemsPerPage,
@@ -296,17 +320,6 @@ export default function EventMarketplace() {
                   onChange={e => handleFilterChange('city', e.target.value)}
                 />
               </div>
-
-              <Select onValueChange={v => handleFilterChange('type', v)}>
-                <SelectTrigger className="text-sm md:text-base">
-                  <SelectValue placeholder="סוג האירוע" />
-                </SelectTrigger>
-                <SelectContent className="min-w-[150px]">
-                  {eventTypes.map(type => (
-                    <SelectItem key={type} value={type} className="text-sm">{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
 
               <Select
                 value={filters.region}
@@ -383,7 +396,6 @@ export default function EventMarketplace() {
                       search: '',
                       region: 'all',
                       city: '',
-                      type: '',
                       dateRange: { from: null, to: null },
                     });
                     setActiveFilters([]);
@@ -451,7 +463,6 @@ export default function EventMarketplace() {
                     search: '',
                     region: 'all',
                     city: '',
-                    type: '',
                     dateRange: { from: null, to: null },
                   });
                   setActiveFilters([]);
