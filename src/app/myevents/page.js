@@ -294,7 +294,8 @@ export default function MyEvents() {
         // (You can adjust this if you need to support clients as well.)
         const eventsQuery = query(
           collection(db, "events"),
-          where("user", "==", user.email)
+          where("user", "==", user.email),
+          where("status", "not-in", ["submitted"])
         );
         const querySnapshot = await getDocs(eventsQuery);
         const eventsData = querySnapshot.docs.map((docSnap) => {
@@ -307,7 +308,7 @@ export default function MyEvents() {
         setEvents(eventsData);
       } catch (error) {
         console.error("Error fetching events:", error);
-        alert("Failed to load events");
+        //alert("Failed to load events");
       } finally {
         setLoadingEvents(false);
       }
