@@ -84,33 +84,32 @@ const MainPage = () => {
 
 };
 
-
 const PhotographerDashboard = () => {
   return (
-    <div className="flex p-4 space-x-4 h-[65vh] relative z-10"> {/* Reduced height */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 relative z-10 min-h-[50vh]">
       <motion.div
-        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 transition-all duration-300 cursor-pointer ml-4"
+        className="w-full aspect-square md:aspect-auto md:h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-6 transition-all duration-300 cursor-pointer"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <Link href="/marketplace" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <Camera className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">אירועים זמינים</div>
-          <p className="text-white text-lg opacity-80">
+          <Camera className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-4 text-white opacity-90" />
+          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">מצא אירוע לצילום </div>
+          <p className="text-white text-sm md:text-lg opacity-80 px-2">
             בנה את תיק העבודות שלך, מצא בעל אירוע שמחפש צלם.
           </p>
         </Link>
       </motion.div>
 
       <motion.div
-        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-teal-600 to-cyan-600 transition-all duration-300 cursor-pointer mr-4"
+        className="w-full aspect-square md:aspect-auto md:h-full flex flex-col items-center justify-center bg-gradient-to-br from-teal-600 to-cyan-600 rounded-xl p-6 transition-all duration-300 cursor-pointer"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <Link href="/manage" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <Images className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">ניהול האירועים שלי</div>
-          <p className="text-white text-lg opacity-80">
+          <Images className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-4 text-white opacity-90" />
+          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">ניהול האירועים שלי</div>
+          <p className="text-white text-sm md:text-lg opacity-80 px-2">
             נהל את האירועים שלך, העלאת תמונות, פרטים ליצירת קשר ועוד.
           </p>
         </Link>
@@ -121,38 +120,34 @@ const PhotographerDashboard = () => {
 
 const ClientDashboard = () => {
   return (
-    <div className="flex p-4 space-x-4 h-[65vh] relative z-10"> {/* Reduced height */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 p-4 relative z-10 min-h-[50vh]">
       <motion.div
-        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 transition-all duration-300 cursor-pointer ml-4"
+        className="w-full aspect-square md:aspect-auto md:h-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl p-6 transition-all duration-300 cursor-pointer"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <Link href="/postevent" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <CalendarPlus className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">פרסום אירוע</div>
-          <p className="text-white text-lg opacity-80">
+          <CalendarPlus className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-4 text-white opacity-90" />
+          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">פרסום אירוע</div>
+          <p className="text-white text-sm md:text-lg opacity-80 px-2">
             חפש את הצלם לאירוע שלך.
           </p>
         </Link>
       </motion.div>
 
       <motion.div
-        className="h-full flex-1 flex flex-col items-center justify-center bg-gradient-to-br from-green-600 to-green-500 transition-all duration-300 cursor-pointer mx-4"
-
-
+        className="w-full aspect-square md:aspect-auto md:h-full flex flex-col items-center justify-center bg-gradient-to-br from-green-600 to-green-500 rounded-xl p-6 transition-all duration-300 cursor-pointer"
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <Link href="/myevents" className="w-full h-full flex flex-col items-center justify-center text-center">
-          <Calendar className="w-12 h-12 mb-4 text-white opacity-90" />
-          <div className="text-white text-4xl font-bold mb-4">האירועים שלי</div>
-          <p className="text-white text-lg opacity-80">
-          עיין באירועים שלך.
+          <Calendar className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-4 text-white opacity-90" />
+          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">האירועים שלי</div>
+          <p className="text-white text-sm md:text-lg opacity-80 px-2">
+            עיין באירועים שלך.
           </p>
         </Link>
       </motion.div>
-
-
     </div>
   );
 };

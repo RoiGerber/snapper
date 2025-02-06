@@ -15,17 +15,21 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-
-  
   return (
     <html lang="he" dir="rtl">
       <head>
-      <link href="https://fonts.googleapis.com/css2?family=Alef&display=swap" rel="stylesheet"/>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Alef&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
         <AuthProvider>
           <Navbar />
-          {children}
+          {/* Add top padding or margin to offset the fixed navbar height */}
+          <main style={{ paddingTop: '64px' }}>
+            {children}
+          </main>
         </AuthProvider>
       </body>
     </html>
