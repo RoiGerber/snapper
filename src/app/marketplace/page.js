@@ -58,7 +58,7 @@ const EventCard = ({ event, onAcceptJob }) => (
         <h2 className="font-bold text-lg md:text-xl text-indigo-800">{event.name}</h2>
         <p className="text-gray-600 text-sm md:text-base">{event.type}</p>
       </div>
-      <Button 
+      <Button
         className="bg-indigo-600 hover:bg-indigo-700 text-white w-full md:w-auto"
         size="sm"
         onClick={() => onAcceptJob(event)}
@@ -160,7 +160,7 @@ export default function EventMarketplace() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const q = query(collection(db, 'events'), where('status', '==', 'paid'));
+        const q = query(collection(db, 'events'), where('status', '==', 'paid'), where('photographerId', 'in', [null, ""]));
         const snapshot = await getDocs(q);
         console.log('snapshot:', snapshot.docs);
         setEvents(snapshot.docs.map(doc => ({ id: doc.id, date: doc.data().date?.toDate(), ...doc.data() })));
@@ -190,18 +190,18 @@ export default function EventMarketplace() {
         photographerId: user.email,
         updatedAt: new Date(),
       });
-      
+
       const contactDetailsMessage = `
         פרטי קשר לאירוע:
         שם מלא: ${eventData.contactName}
         מספר טלפון: ${clientData.phoneNumber}
       `;
       alert(contactDetailsMessage);
-      
+
       setTimeout(() => {
         window.location.href = '/manage';
       }, 2000);
-      
+
       setEvents(prevEvents =>
         prevEvents.map(e =>
           e.id === event.id
@@ -218,61 +218,61 @@ export default function EventMarketplace() {
   const handleFilterChange = (type, value) => {
     setFilters(prev => ({ ...prev, [type]: value }));
     setCurrentPage(1);
-    
+
     // Update active filters with proper date range check
     setActiveFilters(prev => {
       if (type === 'dateRange') {
         const hasValue = value?.from || value?.to;
-        return hasValue 
+        return hasValue
           ? [...new Set([...prev, type])] // Ensure unique
           : prev.filter(f => f !== type);
       }
-      return value 
-        ? [...new Set([...prev, type])] 
+      return value
+        ? [...new Set([...prev, type])]
         : prev.filter(f => f !== type);
     });
   };
-  
+
 
   const removeFilter = (type) => {
     handleFilterChange(type, type === 'dateRange' ? { from: null, to: null } : '');
   };
 
   // Update the date filtering logic in useMemo
-const filteredEvents = useMemo(() =>
-  events.filter(event => {
-    // Existing filters
-    const searchMatch = !filters.search ||
-      event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      event.city.toLowerCase().includes(filters.search.toLowerCase());
+  const filteredEvents = useMemo(() =>
+    events.filter(event => {
+      // Existing filters
+      const searchMatch = !filters.search ||
+        event.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        event.city.toLowerCase().includes(filters.search.toLowerCase());
 
-    const cityMatch = !filters.city ||
-      event.city.toLowerCase().includes(filters.city.toLowerCase());
+      const cityMatch = !filters.city ||
+        event.city.toLowerCase().includes(filters.city.toLowerCase());
 
-    const regionMatch = filters.region === "all" || event.region === filters.region;
+      const regionMatch = filters.region === "all" || event.region === filters.region;
 
-    // Improved date filtering
-    const dateFrom = filters.dateRange?.from ? new Date(filters.dateRange.from) : null;
-    const dateTo = filters.dateRange?.to ? new Date(filters.dateRange.to) : null;
-    const eventDate = new Date(event.date?.toDate());
+      // Improved date filtering
+      const dateFrom = filters.dateRange?.from ? new Date(filters.dateRange.from) : null;
+      const dateTo = filters.dateRange?.to ? new Date(filters.dateRange.to) : null;
+      const eventDate = new Date(event.date?.toDate());
 
-    let dateMatch = true;
-    if (dateFrom || dateTo) {
-      dateMatch = false;
-      if (dateFrom && dateTo) {
-        dateMatch = eventDate >= dateFrom && eventDate <= dateTo;
-      } else if (dateFrom) {
-        dateMatch = eventDate >= dateFrom;
-      } else if (dateTo) {
-        dateMatch = eventDate <= dateTo;
+      let dateMatch = true;
+      if (dateFrom || dateTo) {
+        dateMatch = false;
+        if (dateFrom && dateTo) {
+          dateMatch = eventDate >= dateFrom && eventDate <= dateTo;
+        } else if (dateFrom) {
+          dateMatch = eventDate >= dateFrom;
+        } else if (dateTo) {
+          dateMatch = eventDate <= dateTo;
+        }
       }
-    }
 
-    return searchMatch && cityMatch && regionMatch && dateMatch;
-  }).sort((a, b) => sortOrder === 'date-asc' ?
-    new Date(a.date) - new Date(b.date) :
-    new Date(b.date) - new Date(a.date))
-, [events, filters, sortOrder]);
+      return searchMatch && cityMatch && regionMatch && dateMatch;
+    }).sort((a, b) => sortOrder === 'date-asc' ?
+      new Date(a.date) - new Date(b.date) :
+      new Date(b.date) - new Date(a.date))
+    , [events, filters, sortOrder]);
 
   const paginatedEvents = filteredEvents.slice(
     (currentPage - 1) * itemsPerPage,
@@ -344,8 +344,8 @@ const filteredEvents = useMemo(() =>
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full justify-start text-left font-normal text-sm md:text-base"
                     size="sm"
                   >
