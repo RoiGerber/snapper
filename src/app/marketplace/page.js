@@ -160,7 +160,7 @@ export default function EventMarketplace() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const q = query(collection(db, 'events'), where('status', '==', 'paid'), where('photographerId', 'in', [null, ""]));
+        const q = query(collection(db, 'events'), where('status', '==', 'paid'),  where('photographerId', '==', null));
         const snapshot = await getDocs(q);
         console.log('snapshot:', snapshot.docs);
         setEvents(snapshot.docs.map(doc => ({ id: doc.id, date: doc.data().date?.toDate(), ...doc.data() })));

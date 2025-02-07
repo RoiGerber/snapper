@@ -70,6 +70,7 @@ export default function PostEvent() {
     time: null,
     user: user?.email || "",
     status: "submitted",
+    photographerId: null,
   });
   const [showCustomType, setShowCustomType] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
