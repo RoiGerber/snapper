@@ -13,7 +13,15 @@ import {
   doc
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, XIcon } from "lucide-react";
+import { 
+  CalendarIcon, 
+  XIcon,
+  FileVideoIcon,
+  FileAudioIcon,
+  FileCodeIcon,
+  FileTextIcon,
+  FileIcon 
+} from "lucide-react";
 import useUserRole from '@/hooks/useUserRole';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
