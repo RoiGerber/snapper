@@ -63,7 +63,7 @@ const MainPage = () => {
         className="relative z-10 mb-8 text-center w-full"
       >
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mx-auto">
-  ברוך הבא לצלמים
+  ברוך הבא ל-Tsalamim
 </h1>
         <p className="mt-2 md:mt-3 text-lg md:text-xl text-indigo-900/80 mx-auto max-w-xl">
           {role === 'photographer' 
@@ -128,9 +128,9 @@ const ClientDashboard = () => {
       >
         <Link href="/postevent" className="w-full h-full flex flex-col items-center justify-center text-center">
           <CalendarPlus className="w-8 h-8 md:w-12 md:h-12 mb-2 md:mb-4 text-white opacity-90" />
-          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">פרסום אירוע</div>
+          <div className="text-white text-2xl md:text-4xl font-bold mb-2 md:mb-4">חפש צלם לאירוע</div>
           <p className="text-white text-sm md:text-lg opacity-80 px-2">
-            חפש את הצלם לאירוע שלך.
+            פרסום אירוע חדש במערכת ומצא צלם לאירוע שלך.
           </p>
         </Link>
       </motion.div>

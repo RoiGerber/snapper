@@ -21,7 +21,7 @@ const AboutPage = () => {
             קצת עלינו
           </h1>
           <p className="text-base sm:text-lg text-gray-700 mb-4 leading-relaxed">
-            ברוכים הבאים לצלמים! החזון שלנו הוא לחבר בין צלמים בתחילת דרכם לבעלי אירועים קטנים.
+            ברוכים הבאים ל-Tsalamim! החזון שלנו הוא לחבר בין צלמים בתחילת דרכם לבעלי אירועים קטנים.
           </p>
           <p className="text-base sm:text-lg text-gray-700 mb-4 leading-relaxed">
             אנחנו עוזרים לבעלי אירועים לתעד את האירוע שלהם בלי להוציא אלפי שקלים על שם ומותג.

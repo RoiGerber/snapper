@@ -27,7 +27,7 @@ export const metadata = {
   openGraph: {
     title: 'Tsalamim - מצא את הצלם שלך',
     description: 'מצאו צלם מקצועי לכל אירוע - אירוסין, ברית, ימי הולדת, ספורט ועוד.',
-    url: 'https://your-site.com',
+    url: 'https://tsalamim.com',
     type: 'website',
   },
 };

@@ -246,7 +246,7 @@ export default function PostEvent() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8"
       >
-        <h1 className="text-3xl font-bold text-indigo-800 mb-8">פרסום אירוע חדש</h1>
+        <h1 className="text-3xl font-bold text-indigo-800 mb-8">חפש צלם - פרסום אירוע חדש במערכת האתר</h1>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Event Name */}
           <div>
