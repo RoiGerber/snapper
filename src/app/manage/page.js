@@ -108,7 +108,8 @@ const ExpandableFolder = ({
   isExpanded, 
   onToggleExpand,
   onMarkComplete,
-  onMarkIncomplete
+  onMarkIncomplete,
+  onCancelAssignment
 }) => {
   const handleContainerClick = (e) => {
     const interactiveElements = ['BUTTON', 'A', 'INPUT', 'LABEL'];
@@ -117,6 +118,14 @@ const ExpandableFolder = ({
     }
     
     onToggleExpand(isExpanded ? null : folder.id);
+  };
+
+  const handleCancelAssignment = async (e) => {
+    e.stopPropagation();
+    const confirmation = window.confirm("האם אתה בטוח שברצונך לבטל את הרשמתך כצלם לאירוע זה?");
+    if (confirmation) {
+      onCancelAssignment(folder.id);
+    }
   };
 
   const renderFolderHeader = () => (
@@ -139,7 +148,17 @@ const ExpandableFolder = ({
         <span>{folder.name} - {folder.userDetails.phoneNumber}</span>
       </motion.h2>
 
-      
+      {folder.status === 'accepted' && (
+        <Button
+          onClick={handleCancelAssignment}
+          variant="destructive"
+          className="ml-2 text-xs md:text-sm"
+          size="sm"
+        >
+          <TrashIcon className="w-4 h-4 mr-1" />
+          בטל הרשמה
+        </Button>
+      )}
       <div className="w-full md:w-auto flex items-center justify-end gap-2">
         {folder.status === 'uploaded' ? (
           <span className="text-gray-400 text-sm">
@@ -324,6 +343,23 @@ export default function Manage() {
     return null;
   }
 
+  const handleCancelAssignment = async (eventId) => {
+    try {
+      const eventRef = doc(db, 'events', eventId);
+      await updateDoc(eventRef, {
+        status: 'paid',
+        photographerId: null
+      });
+      
+      // Remove the event from local state
+      setFolders(prev => prev.filter(folder => folder.id !== eventId));
+      
+      alert('בוטלה ההרשמה כצלם עבור האירוע');
+    } catch (error) {
+      console.error('Error canceling assignment:', error);
+      alert('שגיאה בביטול ההרשמה');
+    }
+  };
 
 const handleMultipleFileUpload = async (folderId, files) => {
     try {
@@ -467,6 +503,7 @@ return (
           onToggleExpand={setExpandedFolderId}
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
+          onCancelAssignment={handleCancelAssignment}
         />
       ))}
     </motion.div>

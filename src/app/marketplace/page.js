@@ -33,6 +33,14 @@ import {
 import axios from 'axios';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 const api_url = 'https://data.gov.il/api/3/action/datastore_search';
 const cities_resource_id = '5c78e9fa-c2e2-4771-93ff-7f400a12f7ba';
@@ -141,7 +149,11 @@ export default function EventMarketplace() {
   const [cities, setCities] = useState([]);
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [contactDetails, setContactDetails] = useState({
+    name: '',
+    phone: ''
+  });
   useEffect(() => {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
@@ -173,47 +185,44 @@ export default function EventMarketplace() {
     fetchEvents();
   }, []);
 
-  const handleAcceptJob = async (event) => {
-    if (event.status === 'accepted') return;
+// Modified handleAcceptJob function
+const handleAcceptJob = async (event) => {
+  if (event.status === 'accepted') return;
 
-    try {
-      const eventRef = doc(db, 'events', event.id);
-      const eventSnap = await getDoc(eventRef);
-      const eventData = eventSnap.data();
+  try {
+    const eventRef = doc(db, 'events', event.id);
+    const eventSnap = await getDoc(eventRef);
+    const eventData = eventSnap.data();
 
-      const clientRef = doc(db, 'usersDB', event.user);
-      const clientSnap = await getDoc(clientRef);
-      const clientData = clientSnap.data();
+    const clientRef = doc(db, 'usersDB', event.user);
+    const clientSnap = await getDoc(clientRef);
+    const clientData = clientSnap.data();
 
-      await updateDoc(eventRef, {
-        status: 'accepted',
-        photographerId: user.email,
-        updatedAt: new Date(),
-      });
+    await updateDoc(eventRef, {
+      status: 'accepted',
+      photographerId: user.email,
+      updatedAt: new Date(),
+    });
 
-      const contactDetailsMessage = `
-        פרטי קשר לאירוע:
-        שם מלא: ${eventData.contactName}
-        מספר טלפון: ${clientData.phoneNumber}
-      `;
-      alert(contactDetailsMessage);
+    // Set contact details for dialog
+    setContactDetails({
+      name: eventData.contactName,
+      phone: clientData.phoneNumber
+    });
+    setShowContactDialog(true);
 
-      setTimeout(() => {
-        window.location.href = '/manage';
-      }, 2000);
+    setEvents(prevEvents =>
+      prevEvents.map(e =>
+        e.id === event.id
+          ? { ...e, status: 'accepted', photographerId: user.id }
+          : e
+      )
+    );
 
-      setEvents(prevEvents =>
-        prevEvents.map(e =>
-          e.id === event.id
-            ? { ...e, status: 'accepted', photographerId: user.id }
-            : e
-        )
-      );
-
-    } catch (error) {
-      console.error('Error accepting job:', error);
-    }
-  };
+  } catch (error) {
+    console.error('Error accepting job:', error);
+  }
+};
 
   const handleFilterChange = (type, value) => {
     setFilters(prev => ({ ...prev, [type]: value }));
@@ -364,7 +373,7 @@ export default function EventMarketplace() {
                     defaultMonth={filters.dateRange?.from || new Date()}
                     selected={filters.dateRange}
                     onSelect={range => handleFilterChange('dateRange', range || { from: null, to: null })}
-                    numberOfMonths={typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : 2}
+                    numberOfMonths={1}
                   />
                 </PopoverContent>
               </Popover>
@@ -475,6 +484,40 @@ export default function EventMarketplace() {
           )}
         </div>
       </div>
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className='flex' dir='rtl' >פרטי קשר לאירוע</DialogTitle>
+            <DialogDescription className="text-right">
+              <div className="space-y-4 mt-4">
+                <p className="font-medium">
+                  שם מלא: <span className="text-gray-700">{contactDetails.name}</span>
+                </p>
+                <p className="font-medium">
+                  מספר טלפון: <span className="text-gray-700">{contactDetails.phone}</span>
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  פרטי הקשר נשמרו גם באזור הניהול שלך.
+                </p>
+                <p className="font-medium">
+                  <span className="text-gray-700">אנא צור קשר עם בעל האירוע כעת.</span>
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              onClick={() => {
+                setShowContactDialog(false);
+                window.location.href = '/manage';
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              מעבר לאזור הניהול
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DirectionProvider>
   );
 }
