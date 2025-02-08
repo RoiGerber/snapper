@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { auth } from '@/lib/firebaseConfig'; // Import Firebase auth
-import { signOut } from 'firebase/auth'; // Import signOut
-import { useAuth } from '@/lib/auth'; // Import Auth Context
+import { auth } from '@/lib/firebaseConfig';
+import { signOut } from 'firebase/auth';
+import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { getDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebaseConfig"; // Adjust to your config path
+import { db } from "@/lib/firebaseConfig";
 import {
   Menu,
   X,
@@ -25,8 +25,8 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null); // Add state for user role
-  const { user } = useAuth(); // Get user from Auth Context
+  const [userRole, setUserRole] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,15 +38,12 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    // Fetch user role from Firestore when user is authenticated
     const getUserRole = async (uid) => {
       try {
         const userRef = doc(db, "usersDB", uid);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
-          setUserRole(userDoc.data().role); // Set role in state
-        } else {
-          console.error("No role found for user");
+          setUserRole(userDoc.data().role);
         }
       } catch (error) {
         console.error("Error fetching role:", error.message);
@@ -54,7 +51,7 @@ export default function Navbar() {
     };
 
     if (user) {
-      getUserRole(user.email); // Fetch role when user is authenticated
+      getUserRole(user.uid); // Changed from user.email to user.uid
     }
   }, [user]);
 
@@ -64,7 +61,6 @@ export default function Navbar() {
       router.push('/login');
     } catch (error) {
       console.error('Error logging out:', error.message);
-      alert('Failed to log out.');
     }
   };
 
@@ -72,7 +68,7 @@ export default function Navbar() {
     { href: '/', label: 'דף הבית' },
     { href: '/pricing', label: 'מחירים' },
     { href: '/about', label: 'אודות' },
-    { href: '/gallery', label: 'גלריה' },
+    { href: '/gallery', label: 'גלריה' }, // Gallery link is present here
     { href: '/how-it-works', label: 'כיצד זה עובד' },
     { href: '/contact', label: 'צור קשר' },
   ];
@@ -163,7 +159,7 @@ export default function Navbar() {
               />
             ))}
             
-            {/* Conditional links based on role */}
+            {/* Role-based links */}
             {userRole === "client" && (
               <>
                 <NavLink href="/myevents" label="האירועים שלי" />
@@ -220,7 +216,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
+      {/* Mobile Navigation */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -234,96 +230,71 @@ export default function Navbar() {
                 key={item.label}
                 href={item.href}
                 className="block text-gray-700 py-3 px-6 text-lg w-full text-center hover:bg-gray-100"
-                onClick={() => setIsMobileMenuOpen(false)} // Close menu when clicking a link
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
 
-            {/* Conditional links based on role */}
-{userRole === "client" && (
-  <>
-    <Link 
-      href="/myevents" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button variant="ghost" className="w-full text-indigo-600">
-        האירועים שלי
-      </Button>
-    </Link>
-    <Link 
-      href="/postevent" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button variant="ghost" className="w-full text-indigo-600">
-        בקשת צלם לאירוע
-      </Button>
-    </Link>
-  </>
-)}
-{userRole === "photographer" && (
-  <>
-    <Link 
-      href="/marketplace" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button variant="ghost" className="w-full text-indigo-600">
-        מצא אירוע
-      </Button>
-    </Link>
-    <Link 
-      href="/manage" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button variant="ghost" className="w-full text-indigo-600">
-        ניהול האירועים שלי
-      </Button>
-    </Link>
-  </>
-)}
+            {/* Mobile Role-based links */}
+            {userRole === "client" && (
+              <>
+                <Link href="/myevents" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    האירועים שלי
+                  </Button>
+                </Link>
+                <Link href="/postevent" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    בקשת צלם לאירוע
+                  </Button>
+                </Link>
+              </>
+            )}
+            {userRole === "photographer" && (
+              <>
+                <Link href="/marketplace" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    מצא אירוע
+                  </Button>
+                </Link>
+                <Link href="/manage" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    ניהול האירועים שלי
+                  </Button>
+                </Link>
+              </>
+            )}
 
-{/* User Authentication (Mobile) */}
-{user ? (
-  <>
-    <span className="text-gray-700">שלום, <b>{user.email}</b></span>
-    <Button 
-      onClick={() => {
-        handleLogout();
-        setIsMobileMenuOpen(false);
-      }} 
-      variant="outline" 
-      className="text-red-600 w-full"
-    >
-      <LogOut className="w-5 h-5 mr-2" />
-      התנתק
-    </Button>
-  </>
-) : (
-  <>
-    <Link 
-      href="/login" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button variant="ghost" className="w-full text-indigo-600">
-        התחבר
-      </Button>
-    </Link>
-    <Link 
-      href="/register" 
-      className="w-full text-center"
-      onClick={() => setIsMobileMenuOpen(false)}
-    >
-      <Button className="w-full bg-indigo-600 text-white">
-        הרשמה
-      </Button>
-    </Link>
-  </>
-)}
+            {/* Mobile Authentication */}
+            {user ? (
+              <>
+                <Button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }} 
+                  variant="outline" 
+                  className="text-red-600 w-full"
+                >
+                  <LogOut className="w-5 h-5 mr-2" />
+                  התנתק
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="w-full text-center">
+                  <Button variant="ghost" className="w-full text-indigo-600">
+                    התחבר
+                  </Button>
+                </Link>
+                <Link href="/register" className="w-full text-center">
+                  <Button className="w-full bg-indigo-600 text-white">
+                    הרשמה
+                  </Button>
+                </Link>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
