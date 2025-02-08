@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns";
 import {
   collection,
   query,
@@ -25,7 +24,7 @@ import {
 import useUserRole from '@/hooks/useUserRole';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { ref, getBlob, getDownloadURL } from 'firebase/storage';
+import { ref, getBlob } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
 
@@ -119,6 +118,31 @@ const ExpandableEvent = ({
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [photographer, setPhotographer] = useState(null);
+  const [loadingPhotographer, setLoadingPhotographer] = useState(false);
+
+  const eventDate = event.date?.toDate();
+  const isEventPast = eventDate ? eventDate < new Date() : false;
+
+  useEffect(() => {
+    const fetchPhotographer = async () => {
+      if (event.status === 'accepted' && event.photographerId) {
+        setLoadingPhotographer(true);
+        try {
+          const photographerDoc = await getDoc(doc(db, 'usersDB', event.photographerId));
+          if (photographerDoc.exists()) {
+            setPhotographer(photographerDoc.data());
+          }
+        } catch (error) {
+          console.error('Error fetching photographer:', error);
+        } finally {
+          setLoadingPhotographer(false);
+        }
+      }
+    };
+
+    fetchPhotographer();
+  }, [event.photographerId, event.status]);
 
   const handleDownloadAll = async () => {
     const zip = new JSZip();
@@ -202,18 +226,40 @@ const ExpandableEvent = ({
 
       {/* Gallery Section */}
       <div>
-        {/* Status message */}
-        <div className="mb-4">
-          {event.status === "uploaded" ? (
-            <div className="text-sm text-green-700">
-              האירוע הושלם, כל התמונות הועלו על ידי הצלם.
+        {/* Status Section */}
+      <div className="mb-4">
+        {event.status === "uploaded" ? (
+          <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
+            האירוע הושלם, כל התמונות הועלו על ידי הצלם.
+          </div>
+        ) : event.status === "accepted" ? (
+          isEventPast ? (
+            <div className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
+              האירוע הסתיים. ממתין להעלאת תמונות מהצלם.
             </div>
           ) : (
-            <div className="text-sm text-yellow-600">
-              ממתין להעלאת תמונות על ידי הצלם.
+            <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
+              {loadingPhotographer ? (
+                <span>טוען פרטי צלם...</span>
+              ) : photographer ? (
+                <>
+                  המערכת אישרה צלם לאירוע שלך!🎉
+                  <br />
+                  {photographer.phoneNumber && ` ניתן ליצור קשר בטלפון ${photographer.phoneNumber}.`}
+                  {photographer.email && ` או במייל ${photographer.email}.`}
+                </>
+              ) : (
+                <span>צלם נמצא! פרטים נוספים יועברו בהמשך.</span>
+              )}
             </div>
-          )}
-        </div>
+          )
+        ) : event.status === "paid" ? (
+          <div className="text-sm text-purple-700 bg-purple-50 p-3 rounded-lg">
+            🕒 האירוע אושר! המערכת מחפשת עבורך צלם מתאים.
+          </div>
+        ) : null}
+      </div>
+
 
         {/* File Grid */}
         {event.files && event.files.length > 0 ? (
@@ -225,9 +271,7 @@ const ExpandableEvent = ({
               <FileCard key={index} file={file} />
             ))}
           </motion.div>
-        ) : (
-          <p className="text-gray-500 text-center py-4">לא הועלו תמונות עדיין.</p>
-        )}
+        ) : (<span/>)}
       </div>
 
       {/* Download Section */}

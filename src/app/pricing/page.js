@@ -5,6 +5,7 @@ import { DirectionProvider } from "@radix-ui/react-direction";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { event_price, photographer_payment } from "../../const";
 
 const PricingPage = () => {
   const router = useRouter();
@@ -21,7 +22,7 @@ const PricingPage = () => {
             מחירים
           </h1>
           <p className="text-base sm:text-lg text-gray-700 mb-6 leading-relaxed">
-            המחיר הינו 450 ש"ח לאירוע.
+            המחיר הינו {event_price} ש"ח לאירוע.
             <br />
             <br />
             המחיר כולל עלויות תפעול, אחזקת האתר ושמירת התמונות.
@@ -30,7 +31,7 @@ const PricingPage = () => {
             בנוסף, אנו מפעילים מנגנון מיוחד למציאת הצלמים המתאימים ביותר לאירוע שלך.
             <br />
             <br />
-            מתוך סכום זה, 350 ש"ח מועברים ישירות לצלם עבור צילום האירוע עצמו.
+            מתוך סכום זה, {photographer_payment} ש"ח מועברים ישירות לצלם עבור צילום האירוע עצמו.
           </p>
           <div className="flex justify-center">
             <Button

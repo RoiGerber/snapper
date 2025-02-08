@@ -140,7 +140,6 @@ export default function PostEvent() {
       const cloudFunctionURL = "https://me-west1-leafy-metrics-260112.cloudfunctions.net/yaad-pay-function";
       const requestBody = {
         Order: eventRef.id,
-        Amount: eventData.amount || "1",
         ClientName: eventData.contactName || "",
         email: user.email,
       };
