@@ -1,10 +1,11 @@
-"use client"; // This marks the file as a Client Component
+"use client";
 
 import React, { useState } from "react";
 import { DirectionProvider } from "@radix-ui/react-direction";
 import { Button } from "@/components/ui/button";
 import { db } from '@/lib/firebaseConfig';
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { motion } from "framer-motion";
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -40,11 +41,23 @@ const ContactPage = () => {
 
   return (
     <DirectionProvider dir="rtl">
-      <div style={styles.contactPage}>
-        <div style={styles.container}>
-          <h1 style={styles.header}>צור קשר</h1>
-          {success && <p style={styles.success}>ההודעה נשלחה בהצלחה!</p>}
-          <form onSubmit={handleSubmit} style={styles.form}>
+      <div className="bg-gradient-to-br from-purple-100 via-white to-purple-200 p-6 sm:p-10 min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8"
+        >
+          <h1 className="text-2xl sm:text-3xl font-bold text-indigo-800 mb-6 text-center">
+            צור קשר
+          </h1>
+
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-center">
+              ההודעה נשלחה בהצלחה!
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <input
               type="text"
               name="name"
@@ -52,8 +65,9 @@ const ContactPage = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              style={styles.input}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
+
             <input
               type="email"
               name="email"
@@ -61,80 +75,40 @@ const ContactPage = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              style={styles.input}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
             />
+
             <input
-              dir="rtl"
               type="tel"
               name="phone"
               placeholder="מספר טלפון"
               value={formData.phone}
               onChange={handleChange}
               required
-              style={styles.input}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-right"
             />
+
             <textarea
               name="message"
               placeholder="ההודעה שלך"
               value={formData.message}
               onChange={handleChange}
               required
-              style={styles.textarea}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all min-h-[150px]"
             />
-            <Button type="submit" variant="contained" color="primary" disabled={loading}>
+
+            <Button
+              type="submit"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+              disabled={loading}
+            >
               {loading ? "שולח..." : "שלח הודעה"}
             </Button>
           </form>
-        </div>
+        </motion.div>
       </div>
     </DirectionProvider>
   );
-};
-
-const styles = {
-  contactPage: {
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  container: {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-    maxWidth: "600px",
-    textAlign: "center",
-  },
-  header: {
-    fontSize: "2.5rem",
-    color: "#28a745",
-  },
-  success: {
-    color: "green",
-    fontSize: "1.2rem",
-    marginBottom: "10px",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  input: {
-    padding: "10px",
-    fontSize: "1rem",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-  },
-  textarea: {
-    padding: "10px",
-    fontSize: "1rem",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    minHeight: "100px",
-  },
 };
 
 export default ContactPage;
