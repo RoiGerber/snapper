@@ -73,6 +73,7 @@ export default function PostEvent() {
     photographerId: null,
   });
   const [showCustomType, setShowCustomType] = useState(false);
+  const [isCustomType, setIsCustomType] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
 
@@ -106,9 +107,11 @@ export default function PostEvent() {
   const handleTypeSelect = (value) => {
     if (value === "אחר") {
       setShowCustomType(true);
-      setEventData({ ...eventData, type: "" });
+      setIsCustomType(true);
+      setEventData(prev => ({ ...prev, type: "" })); // Reset type when selecting "אחר"
     } else {
       setShowCustomType(false);
+      setIsCustomType(false);
       setEventData({ ...eventData, type: value });
     }
   };
@@ -388,7 +391,7 @@ export default function PostEvent() {
                 סוג האירוע
               </label>
               <Select
-                value={eventData.type}
+                value={isCustomType ? "אחר" : eventData.type}
                 onValueChange={handleTypeSelect}
                 required
               >
@@ -406,15 +409,20 @@ export default function PostEvent() {
                 </SelectContent>
               </Select>
               {showCustomType && (
-                <Input
-                  type="text"
-                  name="type"
-                  value={eventData.type}
-                  onChange={handleInputChange}
-                  placeholder="Enter custom event type"
-                  className="mt-2 w-full"
-                  required
-                />
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    נא להזין את סוג האירוע
+                  </label>
+                  <Input
+                    type="text"
+                    name="type"
+                    value={eventData.type}
+                    onChange={handleInputChange}
+                    placeholder="הזן סוג אירוע מותאם אישית"
+                    className="w-full"
+                    required
+                  />
+                </div>
               )}
             </div>
 
