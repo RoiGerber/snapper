@@ -72,6 +72,7 @@ export default function Navbar() {
     { href: '/', label: 'דף הבית' },
     { href: '/pricing', label: 'מחירים' },
     { href: '/about', label: 'אודות' },
+    { href: '/gallery', label: 'גלריה' },
     { href: '/how-it-works', label: 'כיצד זה עובד' },
     { href: '/contact', label: 'צור קשר' },
   ];
