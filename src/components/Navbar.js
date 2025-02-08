@@ -38,9 +38,9 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const getUserRole = async (uid) => {
+    const getUserRole = async (email) => {
       try {
-        const userRef = doc(db, "usersDB", uid);
+        const userRef = doc(db, "usersDB", email);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           setUserRole(userDoc.data().role);
@@ -51,7 +51,7 @@ export default function Navbar() {
     };
 
     if (user) {
-      getUserRole(user.uid); // Changed from user.email to user.uid
+      getUserRole(user.email); 
     }
   }, [user]);
 
@@ -65,11 +65,11 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { href: '/', label: 'דף הבית' },
+    { href: '/', label: 'בית' },
     { href: '/pricing', label: 'מחירים' },
     { href: '/about', label: 'אודות' },
-    { href: '/gallery', label: 'גלריה' }, // Gallery link is present here
-    { href: '/how-it-works', label: 'כיצד זה עובד' },
+    { href: '/gallery', label: 'גלריה' },
+    { href: '/how-it-works', label: 'איך זה עובד' },
     { href: '/contact', label: 'צור קשר' },
   ];
 
@@ -85,17 +85,17 @@ export default function Navbar() {
         {href ? (
           <Link href={href}>
             <span
-              className={`px-4 py-2 rounded-full transition-all duration-200 ${
+              className={`px-3 py-2 rounded-full transition-all duration-200 text-sm font-medium ${
                 isActive
-                  ? 'text-indigo-600 bg-white'
-                  : 'text-gray-700 hover:text-indigo-600'
+                  ? 'text-indigo-600 bg-indigo-50'
+                  : 'text-gray-600 hover:text-indigo-600'
               }`}
             >
               {label}
             </span>
           </Link>
         ) : (
-          <div className="flex items-center gap-1 cursor-pointer px-4 py-2 rounded-full text-gray-700 hover:text-indigo-600">
+          <div className="flex items-center gap-1 cursor-pointer px-3 py-2 rounded-full text-gray-600 hover:text-indigo-600">
             {label}
             <ChevronDown className="w-4 h-4" />
           </div>
@@ -112,7 +112,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block px-4 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors"
               >
                 {item.label}
               </Link>
@@ -141,14 +141,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <Camera className="w-8 h-8 text-indigo-600" />
+            <Camera className="w-7 h-7 text-indigo-600" />
             <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
               Tsalamim
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.label}
@@ -163,42 +163,43 @@ export default function Navbar() {
             {userRole === "client" && (
               <>
                 <NavLink href="/myevents" label="האירועים שלי" />
-                <NavLink href="/postevent" label="בקשת צלם לאירוע" />
+                <NavLink href="/postevent" label="חפש צלם" />
               </>
             )}
             {userRole === "photographer" && (
               <>
                 <NavLink href="/marketplace" label="מצא אירוע" />
-                <NavLink href="/manage" label="ניהול האירועים שלי" />
+                <NavLink href="/manage" label="ניהול אירועים" />
               </>
             )}
           </div>
 
           {/* User Authentication */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-gray-700">
-                  שלום, <b>{user.email}</b>
+                <span className="text-sm text-gray-600 max-w-[160px] truncate">
+                  שלום, <span className="font-medium">{user.email}</span>
                 </span>
                 <Button
                   onClick={handleLogout}
                   variant="outline"
-                  className="text-red-600 hover:text-red-700"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 border-red-100 hover:border-red-200"
                 >
-                  <LogOut className="w-5 h-5 mr-2" />
+                  <LogOut className="w-4 h-4 mr-2" />
                   התנתק
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" className="text-indigo-600">
+                  <Button variant="ghost" size="sm" className="text-indigo-600">
                     התחבר
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button className="bg-indigo-600 text-white">
+                  <Button size="sm" className="bg-indigo-600 text-white hover:bg-indigo-700">
                     הרשמה
                   </Button>
                 </Link>
@@ -208,10 +209,14 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-lg focus:outline-none"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-600" /> : <Menu className="w-6 h-6 text-gray-600" />}
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-600" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-600" />
+            )}
           </button>
         </div>
       </div>
@@ -223,13 +228,13 @@ export default function Navbar() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-16 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 h-auto flex flex-col items-center space-y-4 py-6"
+            className="fixed top-16 left-0 w-full bg-white shadow-lg border-t border-gray-200 z-50 flex flex-col items-center py-4"
           >
             {navItems.map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className="block text-gray-700 py-3 px-6 text-lg w-full text-center hover:bg-gray-100"
+                className="w-full py-2.5 px-4 text-gray-700 text-base text-center hover:bg-gray-50"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.label}
@@ -239,62 +244,62 @@ export default function Navbar() {
             {/* Mobile Role-based links */}
             {userRole === "client" && (
               <>
-                <Link href="/myevents" className="w-full text-center">
+                <Link href="/myevents" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    האירועים שלי
+                    אירועים שלי
                   </Button>
                 </Link>
-                <Link href="/postevent" className="w-full text-center">
+                <Link href="/postevent" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    בקשת צלם לאירוע
+                    בקשת צלם
                   </Button>
                 </Link>
               </>
             )}
             {userRole === "photographer" && (
               <>
-                <Link href="/marketplace" className="w-full text-center">
+                <Link href="/marketplace" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full text-indigo-600">
                     מצא אירוע
                   </Button>
                 </Link>
-                <Link href="/manage" className="w-full text-center">
+                <Link href="/manage" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full text-indigo-600">
-                    ניהול האירועים שלי
+                    ניהול אירועים
                   </Button>
                 </Link>
               </>
             )}
 
             {/* Mobile Authentication */}
-            {user ? (
-              <>
+            <div className="w-full px-4 border-t border-gray-100 mt-4 pt-4">
+              {user ? (
                 <Button 
                   onClick={() => {
                     handleLogout();
                     setIsMobileMenuOpen(false);
                   }} 
                   variant="outline" 
-                  className="text-red-600 w-full"
+                  className="w-full text-red-600 border-red-100 hover:border-red-200"
                 >
-                  <LogOut className="w-5 h-5 mr-2" />
+                  <LogOut className="w-4 h-4 mr-2" />
                   התנתק
                 </Button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="w-full text-center">
-                  <Button variant="ghost" className="w-full text-indigo-600">
-                    התחבר
-                  </Button>
-                </Link>
-                <Link href="/register" className="w-full text-center">
-                  <Button className="w-full bg-indigo-600 text-white">
-                    הרשמה
-                  </Button>
-                </Link>
-              </>
-            )}
+              ) : (
+                <>
+                  <Link href="/login" className="block w-full mb-2">
+                    <Button variant="ghost" className="w-full text-indigo-600">
+                      התחבר
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="block w-full">
+                    <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-700">
+                      הרשמה
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
