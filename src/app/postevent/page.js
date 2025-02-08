@@ -131,14 +131,6 @@ export default function PostEvent() {
         user: user.email,
       });
 
-      // Create user2event relationship
-      await addDoc(collection(db, "user2event"), {
-        userId: user.email,
-        eventId: eventRef.id,
-        createdAt: new Date()
-      });
-
-
       // Call the Cloud Function
       const cloudFunctionURL = "https://me-west1-leafy-metrics-260112.cloudfunctions.net/yaad-pay-function";
       const requestBody = {
