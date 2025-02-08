@@ -423,7 +423,7 @@ const handleAcceptJob = async (event) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="min-w-[200px]">
-                <SelectItem value="date-asc" className="text-sm">מיין לפי תאריף - הישן ביותר</SelectItem>
+                <SelectItem value="date-asc" className="text-sm">מיין לפי תאריך - הישן ביותר</SelectItem>
                 <SelectItem value="date-desc" className="text-sm">מיין לפי תאריך - החדש ביותר</SelectItem>
                 <SelectItem value="name-asc" className="text-sm">שם האירוע</SelectItem>
               </SelectContent>
