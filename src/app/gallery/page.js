@@ -25,7 +25,6 @@ const images = [
   { src: 'pictures/image13.jpg', alt: 'image1' },
   { src: 'pictures/image14.jpg', alt: 'image2' },
   { src: 'pictures/image15.jpg', alt: 'image3' },
-  { src: 'pictures/image16.jpg', alt: 'image4' },
 ];
 
 export default function Gallery() {
