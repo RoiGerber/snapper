@@ -425,8 +425,7 @@ export default function MyEvents() {
         } else {
           eventsQuery = query(
             collection(db, "events"),
-            where("user", "==", user.email),
-            where("status", "not-in", ["submitted"])
+            where("user", "==", user.email)
           );
         }
         console.log("eventsQuery", eventsQuery);
