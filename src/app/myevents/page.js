@@ -12,14 +12,14 @@ import {
   doc
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { 
-  CalendarIcon, 
+import {
+  CalendarIcon,
   XIcon,
   FileVideoIcon,
   FileAudioIcon,
   FileCodeIcon,
   FileTextIcon,
-  FileIcon 
+  FileIcon
 } from "lucide-react";
 import useUserRole from '@/hooks/useUserRole';
 import JSZip from "jszip";
@@ -27,37 +27,44 @@ import { saveAs } from "file-saver";
 import { ref, getBlob } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-  
+
   // Image types
   const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
   if (imageTypes.includes(extension)) return 'image';
-  
+
   // Document types
   const documentTypes = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
   if (documentTypes.includes(extension)) return 'document';
-  
+
   // Code types
   const codeTypes = ['js', 'jsx', 'ts', 'tsx', 'html', 'css', 'json', 'py', 'java'];
   if (codeTypes.includes(extension)) return 'code';
-  
+
   // Video types
   const videoTypes = ['mp4', 'avi', 'mov', 'wmv', 'webm'];
   if (videoTypes.includes(extension)) return 'video';
-  
+
   // Audio types
   const audioTypes = ['mp3', 'wav', 'ogg', 'm4a'];
   if (audioTypes.includes(extension)) return 'audio';
-  
+
   return 'other';
 };
 
 const FileCard = ({ file }) => {
   const fileType = getFileType(file.name);
-  const truncatedName = file.name.length > 15 
+  const truncatedName = file.name.length > 15
     ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
     : file.name;
 
@@ -120,9 +127,38 @@ const ExpandableEvent = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [photographer, setPhotographer] = useState(null);
   const [loadingPhotographer, setLoadingPhotographer] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState("");
 
   const eventDate = event.date?.toDate();
   const isEventPast = eventDate ? eventDate < new Date() : false;
+
+  const handleEnterPayment = async () => {
+    try {
+      const cloudFunctionURL = "https://me-west1-leafy-metrics-260112.cloudfunctions.net/yaad-pay-function";
+      const requestBody = {
+        Order: event.id,
+        ClientName: event.contactName || "",
+        email: event.user || user.email,
+      };
+
+      const response = await fetch(cloudFunctionURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) throw new Error('Failed to get payment URL');
+
+      const responseText = await response.text();
+      const redirectURL = `https://pay.hyp.co.il/p/?action=pay&${responseText}`;
+      setRedirectUrl(redirectURL);
+      setShowPaymentDialog(true);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Payment processing error. Please try again.');
+    }
+  };
 
   useEffect(() => {
     const fetchPhotographer = async () => {
@@ -147,26 +183,26 @@ const ExpandableEvent = ({
   const handleDownloadAll = async () => {
     const zip = new JSZip();
     const folderZip = zip.folder(event.name);
-    
+
     setIsDownloading(true);
     setDownloadProgress(0);
-    
+
     try {
       const totalFiles = event.files.length;
       let processedFiles = 0;
-  
+
       // Loop through each file in the event and add it to the zip
       for (const file of event.files) {
         const fileRef = ref(storage, file.url);
         const blob = await getBlob(fileRef);
-  
+
         folderZip.file(file.name, blob);
         processedFiles += 1;
-        
+
         // Update progress
         setDownloadProgress((processedFiles / totalFiles) * 100);
       }
-  
+
       // Generate the zip file and trigger the download
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `${event.name}.zip`);
@@ -177,9 +213,9 @@ const ExpandableEvent = ({
       setIsDownloading(false);
     }
   };
-  
 
-  
+
+
   return (
     <motion.div
       layout
@@ -187,9 +223,8 @@ const ExpandableEvent = ({
       animate={{
         transition: { duration: 0.3 }
       }}
-      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${
-        isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
-      }`}
+      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
+        }`}
     >
       {/* Event Header */}
       <div className="mb-4">
@@ -227,38 +262,50 @@ const ExpandableEvent = ({
       {/* Gallery Section */}
       <div>
         {/* Status Section */}
-      <div className="mb-4">
-        {event.status === "uploaded" ? (
-          <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
-            האירוע הושלם, כל התמונות הועלו על ידי הצלם.
-          </div>
-        ) : event.status === "accepted" ? (
-          isEventPast ? (
-            <div className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
-              האירוע הסתיים. ממתין להעלאת תמונות מהצלם.
+        <div className="mb-4">
+          {event.status === "uploaded" ? (
+            <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
+              האירוע הושלם, כל התמונות הועלו על ידי הצלם.
             </div>
-          ) : (
-            <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
-              {loadingPhotographer ? (
-                <span>טוען פרטי צלם...</span>
-              ) : photographer ? (
-                <>
-                  המערכת אישרה צלם לאירוע שלך!🎉
-                  <br />
-                  {photographer.phoneNumber && ` ניתן ליצור קשר בטלפון ${photographer.phoneNumber}.`}
-                  {photographer.email && ` או במייל ${photographer.email}.`}
-                </>
-              ) : (
-                <span>צלם נמצא! פרטים נוספים יועברו בהמשך.</span>
-              )}
+          ) : event.status === "accepted" ? (
+            isEventPast ? (
+              <div className="text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
+                האירוע הסתיים. ממתין להעלאת תמונות מהצלם.
+              </div>
+            ) : (
+              <div className="text-sm text-blue-700 bg-blue-50 p-3 rounded-lg">
+                {loadingPhotographer ? (
+                  <span>טוען פרטי צלם...</span>
+                ) : photographer ? (
+                  <>
+                    המערכת אישרה צלם לאירוע שלך!🎉
+                    <br />
+                    {photographer.phoneNumber && ` ניתן ליצור קשר בטלפון ${photographer.phoneNumber}.`}
+                    {photographer.email && ` או במייל ${photographer.email}.`}
+                  </>
+                ) : (
+                  <span>צלם נמצא! פרטים נוספים יועברו בהמשך.</span>
+                )}
+              </div>
+            )
+          ) : event.status === "paid" ? (
+            <div className="text-sm text-purple-700 bg-purple-50 p-3 rounded-lg">
+              🕒 האירוע אושר! המערכת מחפשת עבורך צלם מתאים.
             </div>
-          )
-        ) : event.status === "paid" ? (
-          <div className="text-sm text-purple-700 bg-purple-50 p-3 rounded-lg">
-            🕒 האירוע אושר! המערכת מחפשת עבורך צלם מתאים.
-          </div>
-        ) : null}
-      </div>
+          ) : event.status === "submitted" ? (
+            <div className="text-sm text-orange-700 bg-orange-50 p-3 rounded-lg">
+              ממתין לפרטי תשלום. נא להזין פרטי אשראי.
+              <br />
+              <Button
+                onClick={handleEnterPayment}
+                className="mt-2 bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                הזן פרטי תשלום
+              </Button>
+            </div>
+          ) :
+            null}
+        </div>
 
 
         {/* File Grid */}
@@ -271,7 +318,7 @@ const ExpandableEvent = ({
               <FileCard key={index} file={file} />
             ))}
           </motion.div>
-        ) : (<span/>)}
+        ) : (<span />)}
       </div>
 
       {/* Download Section */}
@@ -311,6 +358,33 @@ const ExpandableEvent = ({
           <XIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
         </motion.button>
       )}
+
+      {showPaymentDialog && (
+        <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>פרטי תשלום</DialogTitle>
+              <DialogDescription>
+                <div className="space-y-4 text-right">
+                  <p className="font-semibold text-lg">תודה על יצירת האירוע במערכת</p>
+                  <ul className="list-disc pr-4 space-y-2">
+                    <li>התשלום יתבצע רק לאחר שתאשר את הסכם הצילום והמערכת תבחר צלם מקטלוג הצלמים שלנו</li>
+                    <li>לצורך הבטחת ההתחייבות, נבקש כעת להשלים את ההזמנה ולהזין את פרטי התשלום</li>
+                  </ul>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => window.location.href = redirectUrl}>
+                מעבד לעמוד התשלום
+              </Button>
+              <Button variant="outline" onClick={() => setShowPaymentDialog(false)}>
+                ביטול
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </motion.div>
   );
 };
@@ -323,14 +397,14 @@ export default function MyEvents() {
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [expandedEventId, setExpandedEventId] = useState(null);
-  
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
     }
 
     if (!roleLoading && role) {
-      if (['photographer', 'client'].includes(role)) {
+      if (['photographer', 'client', 'admin'].includes(role)) {
         setIsValidRole(true);
       } else {
         router.replace('/getStarted');
@@ -344,11 +418,18 @@ export default function MyEvents() {
       try {
         // Example: for photographers, query by photographerId.
         // (You can adjust this if you need to support clients as well.)
-        const eventsQuery = query(
-          collection(db, "events"),
-          where("user", "==", user.email),
-          where("status", "not-in", ["submitted"])
-        );
+        let eventsQuery;
+        console.log("role", role);
+        if (role === 'admin') {
+          eventsQuery = query(collection(db, "events")); // Admin sees all events
+        } else {
+          eventsQuery = query(
+            collection(db, "events"),
+            where("user", "==", user.email),
+            where("status", "not-in", ["submitted"])
+          );
+        }
+        console.log("eventsQuery", eventsQuery);
         const querySnapshot = await getDocs(eventsQuery);
         const eventsData = querySnapshot.docs.map((docSnap) => {
           const data = docSnap.data();
