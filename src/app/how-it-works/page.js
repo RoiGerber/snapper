@@ -18,45 +18,50 @@ const HowItWorksPage = () => {
           className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-6 sm:p-8"
         >
           <h1 className="text-2xl sm:text-3xl font-bold text-indigo-800 mb-6 text-center">
-            כיצד זה עובד
+            איך זה עובד בחמישה שלבים? 📸
           </h1>
 
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                1. הרשמה ופרסום אירוע
+                1. נרשמים כמשתמשים באתר
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                2. ממלאים טופס ובו תזינו את פרטי האירוע שלכם
               </h2>
               <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                בעלי אירועים נרשמים בקלות, מפרסמים את האירוע שלהם ומוסיפים אמצעי תשלום מאובטח.
+                כתובת, תאריך, שעה, וכמובן סוג האירוע שתרצו לתעד.
               </p>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                2. התאמת צלם
+                3. פרטי תשלום
               </h2>
               <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                הצלמים שלנו מקבלים התראה על אירועים חדשים באזורם ובוחרים האם לקבל את האירוע.
-                התשלום מעובד ברקע והפרטים המלאים של האירוע נשלחים לשני הצדדים.
+                תועברו לטופס הזנת פרטי תשלום, החיוב בפועל יתבצע רק לאחר שהמערכת תמצא צלם עבורכם.
               </p>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                3. תיעוד האירוע
+                4. חיפוש אוטומטי של צלם עבור האירוע שלכם
               </h2>
               <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                ביום האירוע, גם בעל האירוע וגם הצלם מקבלים התראה לאשר שהכל מתנהל כשורה.
+                המערכת אוטומטית תעדכן אתכם בSMS ובאתר כשאר נקבע הצלם לאירוע שלכם בצירוף פרטי ההתקשרות איתו.
               </p>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-                4. העלאת תמונות וסיום האירוע
+                5. קבלת התמונות והורדתן
               </h2>
               <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-                מיד לאחר האירוע, הצלם מקבל התראה להעלות את התמונות תוך 24 שעות. לאחר ההעלאה,
-                התשלום מועבר לצלם. והתמונות זמינות להורדה לבעל האירוע למשך חודש.
+                מזל טוב! חגגתם באירוע משמח!
+                בתוך כ24 שעות, הצלם יעלה את התמונות ללא סינון או עריכה למערכת האתר, והתמונות יהיו זמינות עבורכם להורדה למשך חודש.
               </p>
             </div>
           </div>

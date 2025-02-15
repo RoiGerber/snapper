@@ -13,6 +13,19 @@ cd C:\Users\roige\Desktop\books-site\my-next-app
 npm run dev
 
 
+Event Status:
+
+1) "submitted" – The client posts an event (not paid yet).
+2) "paid" – The client enters credit card credentials for the event.
+3) "accepted" – The photographer accepts the event.
+4) "uploaded" – The photographer marks the event as completed after uploading all photos.
+
+Notes:
+
+- In the marketplace, photographers can only see events with the status "paid."
+- The client's payment is processed in the background when the event status changes to "accepted."
+- The payment to the photographer is done manually after they mark the event as "uploaded."
+
 ## Getting Started
 
 First, run the development server:

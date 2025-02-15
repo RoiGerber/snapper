@@ -463,13 +463,13 @@ const handleMarkComplete = async (folderId) => {
 const handleMarkIncomplete = async (folderId) => {
   try {
     const folderRef = doc(db, 'events', folderId);
-    await updateDoc(folderRef, { status: 'pending' }); // or remove/adjust the status as needed
+    await updateDoc(folderRef, { status: 'accepted' });
     setFolders((prev) =>
       prev.map((folder) =>
-        folder.id === folderId ? { ...folder, status: 'pending' } : folder
+        folder.id === folderId ? { ...folder, status: 'accepted' } : folder
       )
     );
-    console.log('סטטוס האירוע עודכן ל-"pending" בהצלחה!');
+    console.log('סטטוס האירוע עודכן ל-"accepted" בהצלחה!');
   } catch (error) {
     console.error('Error marking folder as incomplete:', error);
   }

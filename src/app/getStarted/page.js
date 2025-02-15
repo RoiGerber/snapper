@@ -10,7 +10,11 @@ import {
   ShareIcon, 
   MessageSquareIcon,
   ArrowRightIcon,
-  StarIcon
+  StarIcon,
+  CheckCircleIcon,
+  UserSearch,
+  CalendarIcon,
+  CloudUploadIcon
 } from 'lucide-react';
 import { DirectionProvider } from '@radix-ui/react-direction';
 
@@ -189,11 +193,11 @@ function HeroSection() {
 
         <div className="flex items-center justify-center">
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+1000</div>
+            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+100</div>
             <div className="text-gray-600" style={{marginLeft:"4vh"}}>צלמים</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+50k</div>
+            <div className="text-3xl font-bold text-gray-900" style={{marginLeft:"5vh"}}>+500</div>
             <div className="text-gray-600" style={{marginLeft:"5vh"}}>לקוחות מרוצים</div>
           </div>
           <div className="text-center">
@@ -201,14 +205,6 @@ function HeroSection() {
             <div className="text-gray-600" style={{marginLeft:"5vh"}}>שביעות רצון</div>
           </div>
         </div>
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-10 z-10"
-      >
-        <ChevronDownIcon className="w-8 h-8 text-indigo-600" />
       </motion.div>
     </section>
   );
@@ -261,11 +257,90 @@ function TestimonialsSection() {
   );
 }
 
+
+function HowItWorksSection() {
+  const steps = [
+    {
+      title: '1. נרשמים כמשתמשים באתר',
+      description: '',
+      icon: UserIcon,
+      color: 'from-purple-500 to-pink-500'
+    },
+    {
+      title: '2. ממלאים טופס ובו תזינו את פרטי האירוע שלכם',
+      description: 'כתובת, תאריך, שעה, וכמובן סוג האירוע שתרצו לתעד.',
+      icon: CalendarIcon,
+      color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      title: '3. פרטי תשלום',
+      description: 'תועברו לטופס הזנת פרטי תשלום, החיוב בפועל יתבצע רק לאחר שהמערכת תמצא צלם עבורכם.',
+      icon: MessageSquareIcon,
+      color: 'from-green-500 to-teal-500'
+    },
+    {
+      title: '4. חיפוש אוטומטי של צלם עבור האירוע שלכם',
+      description: 'המערכת אוטומטית תעדכן אתכם בSMS ובאתר כשאר נקבע הצלם לאירוע שלכם בצירוף פרטי ההתקשרות איתו.',
+      icon: UserSearch ,
+      color: 'from-purple-500 to-teal-500'
+    },
+    {
+      title: '5. קבלו את התמונות',
+      description: 'מזל טוב! חגגתם באירוע משמח! בתוך כ24 שעות, הצלם יעלה את התמונות ללא סינון או עריכה למערכת האתר, והתמונות יהיו זמינות עבורכם להורדה למשך חודש.',
+      icon: CloudUploadIcon,
+      color: 'from-orange-500 to-amber-500'
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-white" dir="rtl">
+      <div className="container mx-auto px-4">
+        <motion.div 
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+          variants={fadeInUp}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            איך זה עובד?
+          </h2>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {steps.map((step, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="group relative bg-white p-8 rounded-2xl shadow-xl border border-indigo-50 hover:border-indigo-100 transition-all"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-white to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+              <div className="relative z-10">
+                <div className={`bg-gradient-to-r ${step.color} p-3 rounded-lg w-14 h-14 flex items-center justify-center mb-6`}>
+                  <step.icon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  {step.title}
+                </h3>
+                <p className="text-gray-600 mb-4">{step.description}</p>
+                <CheckCircleIcon className="w-6 h-6 text-green-500" />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function getStarted() {
   return (
     <DirectionProvider dir="rtl"> 
       <main className="min-h-screen">
         <HeroSection />
+        <HowItWorksSection />
         <FeaturesSection />
         <TestimonialsSection />
       </main>
