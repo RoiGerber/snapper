@@ -307,32 +307,49 @@ function HowItWorksSection() {
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="relative flex flex-col lg:flex-row gap-8 lg:gap-4">
+          {/* Connecting line */}
+          <div className="hidden lg:block absolute top-[120px] left-0 right-0 h-1 bg-gradient-to-r from-indigo-100 to-purple-100"></div>
+
           {steps.map((step, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative bg-white p-8 rounded-2xl shadow-xl border border-indigo-50 hover:border-indigo-100 transition-all"
+              className="relative flex-1 group bg-white lg:bg-transparent p-6 rounded-2xl lg:shadow-none lg:hover:shadow-none transition-all"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
-              <div className="relative z-10">
-                <div className={`bg-gradient-to-r ${step.color} p-3 rounded-lg w-14 h-14 flex items-center justify-center mb-6`}>
-                  <step.icon className="w-8 h-8 text-white" />
+              {/* Step number connector */}
+              <div className="hidden lg:block absolute top-[104px] left-[-32px] right-[-32px] h-1 bg-gradient-to-r from-indigo-100 to-purple-100"></div>
+
+              <div className="relative z-10 text-center">
+                {/* Step number */}
+                <div className="mx-auto mb-6 w-16 h-16 flex items-center justify-center bg-white border-2 border-indigo-100 rounded-full text-2xl font-bold text-indigo-600">
+                  {index + 1}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {step.title}
-                </h3>
-                <p className="text-gray-600 mb-4">{step.description}</p>
-                <CheckCircleIcon className="w-6 h-6 text-green-500" />
+
+                {/* Content */}
+                <div className="space-y-4">
+                  <div className={`mx-auto p-3 rounded-lg w-14 h-14 flex items-center justify-center`}>
+                    <step.icon className={`w-8 h-8 ${step.color.replace('bg-gradient-to-r', 'text-gradient')}`} />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                </div>
               </div>
+
+              {/* Mobile connector */}
+              {index !== steps.length - 1 && (
+                <div className="lg:hidden absolute top-[50%] right-[-40px] w-8 h-1 bg-indigo-100"></div>
+              )}
             </motion.div>
           ))}
         </div>
       </div>
     </section>
-  );
+);
 }
 
 export default function getStarted() {
