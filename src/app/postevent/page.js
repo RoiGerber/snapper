@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { db } from "../../lib/firebaseConfig";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import useUserRole from '@/hooks/useUserRole';
 import {
   Dialog,
@@ -128,6 +128,7 @@ export default function PostEvent() {
       // Create event document
       const eventRef = await addDoc(collection(db, "events"), {
         ...eventData,
+        createdAt: serverTimestamp(),
         user: user.email,
       });
 

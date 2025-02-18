@@ -21,7 +21,7 @@ import {
   GoogleAuthProvider
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebaseConfig';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { deleteDoc } from 'firebase/firestore';
@@ -144,6 +144,7 @@ export default function RegisterPage() {
         email: userEmail,
         phoneNumber,
         role: userType,
+        createdAt: serverTimestamp(),
       });
       // If photographer, show the extra details modal.
       if (userType === 'photographer') {

@@ -261,31 +261,31 @@ function TestimonialsSection() {
 function HowItWorksSection() {
   const steps = [
     {
-      title: '1. נרשמים כמשתמשים באתר',
+      title: 'נרשמים כמשתמשים באתר',
       description: '',
       icon: UserIcon,
       color: 'from-purple-500 to-pink-500'
     },
     {
-      title: '2. ממלאים טופס ובו תזינו את פרטי האירוע שלכם',
+      title: 'ממלאים טופס ובו תזינו את פרטי האירוע שלכם',
       description: 'כתובת, תאריך, שעה, וכמובן סוג האירוע שתרצו לתעד.',
       icon: CalendarIcon,
       color: 'from-blue-500 to-cyan-500'
     },
     {
-      title: '3. פרטי תשלום',
+      title: 'פרטי תשלום',
       description: 'תועברו לטופס הזנת פרטי תשלום, החיוב בפועל יתבצע רק לאחר שהמערכת תמצא צלם עבורכם.',
       icon: MessageSquareIcon,
       color: 'from-green-500 to-teal-500'
     },
     {
-      title: '4. חיפוש אוטומטי של צלם עבור האירוע שלכם',
+      title: 'חיפוש אוטומטי של צלם עבור האירוע שלכם',
       description: 'המערכת אוטומטית תעדכן אתכם בSMS ובאתר כשאר נקבע הצלם לאירוע שלכם בצירוף פרטי ההתקשרות איתו.',
       icon: UserSearch ,
       color: 'from-purple-500 to-teal-500'
     },
     {
-      title: '5. קבלו את התמונות',
+      title: 'קבלו את התמונות',
       description: 'מזל טוב! חגגתם באירוע משמח! בתוך כ24 שעות, הצלם יעלה את התמונות ללא סינון או עריכה למערכת האתר, והתמונות יהיו זמינות עבורכם להורדה למשך חודש.',
       icon: CloudUploadIcon,
       color: 'from-orange-500 to-amber-500'
