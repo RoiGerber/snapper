@@ -9,6 +9,7 @@ import {
   where,
   getDocs,
   getDoc,
+  updateDoc,
   doc
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
@@ -121,7 +122,8 @@ const FileCard = ({ file }) => {
 const ExpandableEvent = ({
   event,
   isExpanded,
-  onToggleExpand
+  onToggleExpand,
+  onDelete
 }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -160,6 +162,21 @@ const ExpandableEvent = ({
     }
   };
 
+  const handleDelete = async () => {
+    const confirmDelete = confirm("האם אתה בטוח שברצונך למחוק את האירוע?");
+    if (!confirmDelete) return;
+
+    try {
+      await updateDoc(doc(db, 'events', event.id), {
+        status: 'deleted'
+      });
+      onDelete(event.id); // Update UI state
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('מחיקת האירוע נכשלה. אנא נסה שוב.');
+    }
+  };
+  
   useEffect(() => {
     const fetchPhotographer = async () => {
       if (event.status === 'accepted' && event.photographerId) {
@@ -359,6 +376,20 @@ const ExpandableEvent = ({
         </motion.button>
       )}
 
+      {/* Add delete button */}
+      {!isEventPast && (
+        <div className="mt-4 flex gap-2">
+          <Button
+            onClick={handleDelete}
+            variant="destructive"
+            size="sm"
+            className="w-full md:w-auto"
+          >
+            ביטול אירוע
+          </Button>
+        </div>
+      )}
+
       {showPaymentDialog && (
         <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
           <DialogContent>
@@ -398,6 +429,10 @@ export default function MyEvents() {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [expandedEventId, setExpandedEventId] = useState(null);
 
+  const handleEventDeleted = (eventId) => {
+    setEvents(prev => prev.filter(event => event.id !== eventId));
+  };
+  
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
@@ -420,12 +455,14 @@ export default function MyEvents() {
         // (You can adjust this if you need to support clients as well.)
         let eventsQuery;
         console.log("role", role);
+        
         if (role === 'admin') {
           eventsQuery = query(collection(db, "events")); // Admin sees all events
         } else {
           eventsQuery = query(
             collection(db, "events"),
-            where("user", "==", user.email)
+            where("user", "==", user.email),
+            where("status", "!=", "deleted")
           );
         }
         console.log("eventsQuery", eventsQuery);

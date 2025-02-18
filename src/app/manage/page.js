@@ -17,6 +17,8 @@ import {
   getDocs 
 } from 'firebase/firestore';
 
+const MIN_PHOTOS_REQUIRED = 100;
+
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
   
@@ -324,6 +326,7 @@ export default function Manage() {
         const events = await fetchEventsByPhotographer(user.email);
         console.log('Events:', events);
         setFolders(events);
+        
         // Handle the fetched events as needed
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -446,6 +449,22 @@ const handleMultipleFileUpload = async (folderId, files) => {
 
 const handleMarkComplete = async (folderId) => {
   try {
+    const folder = folders.find(f => f.id === folderId);
+    
+    // Check if event date has passed
+    const currentDate = new Date();
+    const eventDate = folder.date;
+    if (eventDate > currentDate) {
+      alert("לא ניתן לסיים אירוע לפני תאריך האירוע");
+      return;
+    }
+
+    // Check minimum photos requirement
+    if (!folder.files || folder.files.length < MIN_PHOTOS_REQUIRED) {
+      alert(`יש להעלות לפחות ${MIN_PHOTOS_REQUIRED} תמונות לפני סיום האירוע`);
+      return;
+    }
+    
     const folderRef = doc(db, 'events', folderId);
     await updateDoc(folderRef, { status: 'uploaded' });
     // Optionally update local state so the UI reflects the change:
@@ -535,7 +554,11 @@ const fetchUserDetails = async (userId) => {
 const fetchEventsByPhotographer = async (email) => {
   try {
     const eventsRef = collection(db, 'events');
-    const q = query(eventsRef, where('photographerId', '==', email));
+    const q = query(
+      eventsRef, 
+      where('photographerId', '==', email),
+      where('status', '!=', 'deleted')
+    );
     const querySnapshot = await getDocs(q);
     
     const eventsPromises = querySnapshot.docs.map(async (docSnap) => {

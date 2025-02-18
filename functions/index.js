@@ -141,6 +141,25 @@ exports.sendSmsOnEventChange = onDocumentWritten("events/{eventId}", async (chan
       const message = `התמונות לאירוע "${afterData.name}" הועלו בהצלחה. ניתן כעת להוריד אותן. (התמונות יימחקו לאחר חודש)`;
       await sendSms(clientPhone, message);
       return null;
+    } else if (newStatus === "deleted") {
+      // If the event is deleted, the client is notified that the event was canceled.
+      // and if there is a photographer assigned, they are also notified.
+      const clientSnap = await admin.firestore().collection("usersDB").doc(afterData.user).get();
+      if (!clientSnap.exists || !clientSnap.data().phoneNumber) {
+        logger.info("Client record not found or missing phone number.");
+        return null;
+      }
+      const clientPhone = clientSnap.data().phoneNumber;
+      const message = `האירוע "${afterData.name}" בוטל. נשמח לעזור באירוע הבא שלך.`;
+
+      const photographerSnap = await admin.firestore().collection("usersDB").doc(afterData.photographerId).get();
+      if (photographerSnap.exists && photographerSnap.data().phoneNumber) {
+        const photographerPhone = photographerSnap.data().phoneNumber;
+        const photographerMessage = `אנחנו מצטערים לעדכן שהלקוח ביטל את האירוע "${afterData.name}". נשמח לעזור באירוע הבא שלך.`;
+        await sendSms(photographerPhone, photographerMessage);
+      }
+      await sendSms(clientPhone, message);
+      return null;
     }
     // If additional statuses are added later (for example, a confirmation on event day) add them here.
     else {

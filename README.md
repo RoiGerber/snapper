@@ -19,7 +19,7 @@ Event Status:
 2) "paid" – The client enters credit card credentials for the event.
 3) "accepted" – The photographer accepts the event.
 4) "uploaded" – The photographer marks the event as completed after uploading all photos.
-
+*) "deleted" - The client deleted the event.
 Notes:
 
 - In the marketplace, photographers can only see events with the status "paid."
