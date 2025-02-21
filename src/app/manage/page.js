@@ -451,14 +451,8 @@ const handleMarkComplete = async (folderId) => {
   try {
     const folder = folders.find(f => f.id === folderId);
     
-    // Check if event date has passed
-    const currentDate = new Date();
-    const eventDate = folder.date;
-    if (eventDate > currentDate) {
-      alert("לא ניתן לסיים אירוע לפני תאריך האירוע");
-      return;
-    }
-
+    // Date check removed so events can be marked complete regardless of event date
+    
     // Check minimum photos requirement
     if (!folder.files || folder.files.length < MIN_PHOTOS_REQUIRED) {
       alert(`יש להעלות לפחות ${MIN_PHOTOS_REQUIRED} תמונות לפני סיום האירוע`);
@@ -467,7 +461,8 @@ const handleMarkComplete = async (folderId) => {
     
     const folderRef = doc(db, 'events', folderId);
     await updateDoc(folderRef, { status: 'uploaded' });
-    // Optionally update local state so the UI reflects the change:
+    
+    // Update local state to reflect the change:
     setFolders((prev) =>
       prev.map((folder) =>
         folder.id === folderId ? { ...folder, status: 'uploaded' } : folder
@@ -478,6 +473,7 @@ const handleMarkComplete = async (folderId) => {
     console.error('Error marking folder as complete:', error);
   }
 };
+
 
 const handleMarkIncomplete = async (folderId) => {
   try {
