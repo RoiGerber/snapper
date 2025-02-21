@@ -550,7 +550,7 @@ const fetchUserDetails = async (userId) => {
   }
 };
 
-// Update the fetchEventsByPhotographer function
+// Update the fetchEventsByPhotographer function to handle errors per event
 const fetchEventsByPhotographer = async (email) => {
   try {
     const eventsRef = collection(db, 'events');
@@ -561,19 +561,30 @@ const fetchEventsByPhotographer = async (email) => {
     );
     const querySnapshot = await getDocs(q);
     
-    const eventsPromises = querySnapshot.docs.map(async (docSnap) => {
-      const data = docSnap.data();
-      const userDetails = await fetchUserDetails(data.user);
-      return { 
-        id: docSnap.id, 
-        userDetails, 
-        ...data,
-        // Convert Firestore Timestamp to JS Date if needed
-        date: data.date?.toDate() 
-      };
-    });
+    const events = [];
+    for (const docSnap of querySnapshot.docs) {
+      try {
+        const data = docSnap.data();
+        const userDetails = await fetchUserDetails(data.user);
+        events.push({ 
+          id: docSnap.id, 
+          userDetails, 
+          ...data,
+          date: data.date?.toDate() 
+        });
+      } catch (error) {
+        console.error(`Error processing event ${docSnap.id}:`, error);
+        // Push event without user details if needed
+        events.push({
+          id: docSnap.id,
+          userDetails: { phoneNumber: 'N/A' },
+          ...data,
+          date: data.date?.toDate()
+        });
+      }
+    }
     
-    return await Promise.all(eventsPromises);
+    return events;
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
