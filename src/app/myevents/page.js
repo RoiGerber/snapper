@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import {
@@ -25,8 +25,6 @@ import {
   ArrowRight
 } from "lucide-react";
 import useUserRole from '@/hooks/useUserRole';
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 import { ref, getBlob } from 'firebase/storage';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storage, db } from '@/lib/firebaseConfig';
@@ -110,6 +108,7 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
   const [redirectUrl, setRedirectUrl] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
+  const cancellationRef = useRef(false);
 
   const ITEMS_PER_PAGE = 20;
   const COLLAPSED_ITEMS = 10;
@@ -180,6 +179,64 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
     }
   };
 
+  const handleDownloadAll = async () => {
+    cancellationRef.current = false;
+    
+    if (!window.showDirectoryPicker) {
+      alert('תכונת בחירת תיקייה זמינה רק בדפדפנים מבוססי Chromium (Chrome, Edge). אנא השתמש בדפדפן תומך.');
+      return;
+    }
+
+    try {
+      setIsDownloading(true);
+      setDownloadProgress(0);
+
+      const directoryHandle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+        startIn: 'downloads'
+      });
+
+      const eventDirHandle = await directoryHandle.getDirectoryHandle(event.name, { 
+        create: true 
+      });
+
+      const totalFiles = event.files.length;
+      let processedFiles = 0;
+
+      for (const file of event.files) {
+        if (cancellationRef.current) break;
+
+        try {
+          const fileRef = ref(storage, file.url);
+          const blob = await getBlob(fileRef);
+
+          const fileHandle = await eventDirHandle.getFileHandle(file.name, { create: true });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+
+          processedFiles++;
+          setDownloadProgress(Math.round((processedFiles / totalFiles) * 100));
+        } catch (error) {
+          console.error(`שגיאה בהורדת הקובץ ${file.name}:`, error);
+        }
+      }
+
+      if (!cancellationRef.current) {
+        alert('כל הקבצים הורדו בהצלחה!');
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('בחירת תיקייה בוטלה');
+      } else {
+        console.error('שגיאת הורדה:', error);
+        alert(`ההורדה נכשלה: ${error.message}`);
+      }
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchPhotographer = async () => {
       if (event.status === 'accepted' && event.photographerId) {
@@ -200,96 +257,6 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
     fetchPhotographer();
   }, [event.photographerId, event.status]);
 
-  const handleDownloadAll = async () => {
-  try {
-    setIsDownloading(true);
-    setDownloadProgress(0);
-
-    // Progress phases
-    let progress = {
-      metadata: 0,    // 0-20% of total progress
-      download: 0,    // 20-98% of total progress
-      packaging: 0    // 98-100% of total progress
-    };
-
-    const updateProgress = () => {
-      const total = 
-        (progress.metadata * 0.2) + 
-        (progress.download * 0.78) + 
-        (progress.packaging * 0.02);
-      setDownloadProgress(Math.round(total));
-    };
-
-    // Phase 1: Metadata collection with progress
-    const batchSize = 25;
-    let totalSize = 0;
-    let processedFiles = 0;
-    const totalFiles = event.files.length;
-
-    for (let i = 0; i < event.files.length; i += batchSize) {
-      const batch = event.files.slice(i, i + batchSize);
-      
-      await Promise.all(batch.map(async (file) => {
-        try {
-          const fileRef = ref(storage, file.url);
-          const metadata = await getMetadata(fileRef);
-          totalSize += metadata.size;
-        } catch (error) {
-          console.error('Metadata error:', error);
-        } finally {
-          processedFiles++;
-          progress.metadata = processedFiles / totalFiles;
-          updateProgress();
-        }
-      }));
-
-      // Add slight delay between batches
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-
-    // Phase 2: File downloading
-    let downloadedSize = 0;
-    for (const [index, file] of event.files.entries()) {
-      try {
-        const fileRef = ref(storage, file.url);
-        const blob = await getBlob(fileRef);
-        zip.file(file.name, blob);
-        
-        downloadedSize += blob.size;
-        progress.download = downloadedSize / totalSize;
-        updateProgress();
-      } catch (error) {
-        console.error('Download error:', error);
-      }
-    }
-
-    // Phase 3: ZIP packaging
-    const content = await zip.generateAsync({ type: "blob" }, (metadata) => {
-      progress.packaging = metadata.percent / 100;
-      updateProgress();
-    });
-
-    saveAs(content, `${event.name}.zip`);
-
-  } catch (error) {
-    console.error('Download failed:', error);
-    alert(`Download failed: ${error.message}`);
-  } finally {
-    setIsDownloading(false);
-  }
-};
-
-// Add cancel button in JSX
-{isDownloading && (
-  <Button 
-    onClick={() => cancellationToken.isCancelled = true}
-    variant="destructive"
-    className="mt-2"
-  >
-    Cancel Download
-  </Button>
-)}
-  
   return (
     <motion.div
       layout
@@ -331,65 +298,45 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
         </div>
       </div>
 
-      // Inside the ExpandableEvent component's return statement
-{event.files?.length > 0 && (
-  <div className="sticky top-0 bg-white z-50 p-2">
-    {isDownloading ? (
-      <div className="space-y-2">
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div 
-            className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" 
-            style={{ width: `${downloadProgress}%` }}
-          />
-        </div>
-
-        {/* Progress Text */}
-        <div className="flex items-center justify-between text-sm">
-          <span>
-            {downloadProgress < 20 && "Preparing download..."}
-            {downloadProgress >= 20 && downloadProgress < 98 && "Downloading files..."}
-            {downloadProgress >= 98 && "Packaging files..."}
-          </span>
-          <span>{Math.round(downloadProgress)}%</span>
-        </div>
-
-        {/* Cancel Button */}
-        <Button
-          onClick={() => setIsDownloading(false)}
-          variant="destructive"
-          size="sm"
-          className="mt-2 w-full"
-        >
-          Cancel Download
-        </Button>
-      </div>
-    ) : (
-      <Button
-        onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
-        className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
-        size="sm"
-      >
-        Download All
-      </Button>
-    )}
-  </div>
-)}
-
       {event.files?.length > 0 && (
         <div className="sticky top-0 bg-white z-50 p-2">
           {isDownloading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-5 h-5 border-t-2 border-indigo-600 rounded-full animate-spin" />
-              <span className="text-sm">הורדה: {Math.round(downloadProgress)}%</span>
+            <div className="space-y-2">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" 
+                  style={{ width: `${downloadProgress}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>
+                  {Math.round(downloadProgress)}% הורדה (
+                  {Math.round((downloadProgress/100) * event.files.length)}/
+                  {event.files.length})
+                </span>
+              </div>
+              <Button
+                onClick={() => {
+                  cancellationRef.current = true;
+                  setIsDownloading(false);
+                }}
+                variant="destructive"
+                size="sm"
+                className="mt-2 w-full"
+              >
+                ביטול הורדה
+              </Button>
             </div>
           ) : (
             <Button
-              onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                handleDownloadAll(); 
+              }}
               className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
               size="sm"
             >
-              הורד הכל
+              הורד הכל לתיקייה
             </Button>
           )}
         </div>
