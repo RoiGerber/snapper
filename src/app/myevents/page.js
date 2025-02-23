@@ -331,6 +331,51 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
         </div>
       </div>
 
+      // Inside the ExpandableEvent component's return statement
+{event.files?.length > 0 && (
+  <div className="sticky top-0 bg-white z-50 p-2">
+    {isDownloading ? (
+      <div className="space-y-2">
+        {/* Progress Bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" 
+            style={{ width: `${downloadProgress}%` }}
+          />
+        </div>
+
+        {/* Progress Text */}
+        <div className="flex items-center justify-between text-sm">
+          <span>
+            {downloadProgress < 20 && "Preparing download..."}
+            {downloadProgress >= 20 && downloadProgress < 98 && "Downloading files..."}
+            {downloadProgress >= 98 && "Packaging files..."}
+          </span>
+          <span>{Math.round(downloadProgress)}%</span>
+        </div>
+
+        {/* Cancel Button */}
+        <Button
+          onClick={() => setIsDownloading(false)}
+          variant="destructive"
+          size="sm"
+          className="mt-2 w-full"
+        >
+          Cancel Download
+        </Button>
+      </div>
+    ) : (
+      <Button
+        onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
+        className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
+        size="sm"
+      >
+        Download All
+      </Button>
+    )}
+  </div>
+)}
+
       {event.files?.length > 0 && (
         <div className="sticky top-0 bg-white z-50 p-2">
           {isDownloading ? (
