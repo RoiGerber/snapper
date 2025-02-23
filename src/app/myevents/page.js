@@ -205,101 +205,74 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    // Add cancellation state
-    const cancellationToken = { isCancelled: false };
-    
-    // Retry function with exponential backoff
-    const fetchWithRetry = async (fn, retries = 3) => {
-      for (let i = 0; i < retries; i++) {
-        try {
-          return await fn();
-        } catch (error) {
-          if (i === retries - 1) throw error;
-          await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
-        }
-      }
+    // Progress phases
+    let progress = {
+      metadata: 0,    // 0-20% of total progress
+      download: 0,    // 20-98% of total progress
+      packaging: 0    // 98-100% of total progress
     };
 
-    // Validate files in batches
+    const updateProgress = () => {
+      const total = 
+        (progress.metadata * 0.2) + 
+        (progress.download * 0.78) + 
+        (progress.packaging * 0.02);
+      setDownloadProgress(Math.round(total));
+    };
+
+    // Phase 1: Metadata collection with progress
     const batchSize = 25;
-    let failedFiles = [];
     let totalSize = 0;
+    let processedFiles = 0;
+    const totalFiles = event.files.length;
 
     for (let i = 0; i < event.files.length; i += batchSize) {
-      if (cancellationToken.isCancelled) break;
-      
       const batch = event.files.slice(i, i + batchSize);
+      
       await Promise.all(batch.map(async (file) => {
         try {
           const fileRef = ref(storage, file.url);
-          const metadata = await fetchWithRetry(() => getMetadata(fileRef));
+          const metadata = await getMetadata(fileRef);
           totalSize += metadata.size;
         } catch (error) {
-          console.error(`File validation failed: ${file.name}`, error);
-          failedFiles.push(file.name);
+          console.error('Metadata error:', error);
+        } finally {
+          processedFiles++;
+          progress.metadata = processedFiles / totalFiles;
+          updateProgress();
         }
       }));
+
+      // Add slight delay between batches
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    if (failedFiles.length > 0) {
-      alert(`Failed to validate ${failedFiles.length} files. Check console for details.`);
-      return;
-    }
-
-    // Check storage quota
-    if (totalSize > 500 * 1024 * 1024) { // 500MB limit
-      alert('Total file size exceeds maximum download limit (500MB)');
-      return;
-    }
-
-    // Download files with progress
-    const zip = new JSZip();
-    let processedSize = 0;
-    
+    // Phase 2: File downloading
+    let downloadedSize = 0;
     for (const [index, file] of event.files.entries()) {
-      if (cancellationToken.isCancelled) break;
-      
       try {
         const fileRef = ref(storage, file.url);
-        const blob = await fetchWithRetry(() => getBlob(fileRef));
-        
+        const blob = await getBlob(fileRef);
         zip.file(file.name, blob);
-        processedSize += blob.size;
         
-        const progress = Math.min(
-          Math.round((processedSize / totalSize) * 100),
-          98 // Reserve 2% for final packaging
-        );
-        setDownloadProgress(progress);
+        downloadedSize += blob.size;
+        progress.download = downloadedSize / totalSize;
+        updateProgress();
       } catch (error) {
-        console.error(`Failed to download: ${file.name}`, error);
-        failedFiles.push(file.name);
+        console.error('Download error:', error);
       }
     }
 
-    if (failedFiles.length > 0) {
-      alert(`Failed to download ${failedFiles.length} files:\n${failedFiles.join('\n')}`);
-      return;
-    }
-
-    // Generate ZIP with progress
-    const content = await zip.generateAsync(
-      { type: "blob" },
-      metadata => {
-        setDownloadProgress(98 + Math.round(metadata.percent * 0.02));
-      }
-    );
-
-    // Final validation
-    if (!content || content.size === 0) {
-      throw new Error('Generated ZIP file is invalid');
-    }
+    // Phase 3: ZIP packaging
+    const content = await zip.generateAsync({ type: "blob" }, (metadata) => {
+      progress.packaging = metadata.percent / 100;
+      updateProgress();
+    });
 
     saveAs(content, `${event.name}.zip`);
-    setDownloadProgress(100);
 
   } catch (error) {
-    console.error('Critical download error:', error);
+    console.error('Download failed:', error);
     alert(`Download failed: ${error.message}`);
   } finally {
     setIsDownloading(false);
