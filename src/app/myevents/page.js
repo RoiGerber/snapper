@@ -231,8 +231,6 @@ const ExpandableEvent = ({
     }
   };
 
-
-
   return (
     <motion.div
       layout
@@ -240,8 +238,9 @@ const ExpandableEvent = ({
       animate={{
         transition: { duration: 0.3 }
       }}
-      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
-        }`}
+      className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${
+        isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
+      }`}
     >
       {/* Event Header */}
       <div className="mb-4">
@@ -276,7 +275,28 @@ const ExpandableEvent = ({
         </div>
       </div>
 
-      {/* Gallery Section */}
+      {/* --- New: Download Section on Top --- */}
+      {event.files && event.files.length > 0 && (
+        <div className="sticky top-0 bg-white z-50 p-2">
+          {isDownloading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-5 h-5 border-t-2 border-indigo-600 rounded-full animate-spin" />
+              <span className="text-sm">הורדה: {Math.round(downloadProgress)}%</span>
+            </div>
+          ) : (
+            <Button
+              // Prevent the click from propagating to the card’s expand/collapse overlay
+              onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
+              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
+              size="sm"
+            >
+              הורד הכל
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Gallery & Status Section */}
       <div>
         {/* Status Section */}
         <div className="mb-4">
@@ -324,7 +344,6 @@ const ExpandableEvent = ({
             null}
         </div>
 
-
         {/* File Grid */}
         {event.files && event.files.length > 0 ? (
           <motion.div
@@ -338,25 +357,7 @@ const ExpandableEvent = ({
         ) : (<span />)}
       </div>
 
-      {/* Download Section */}
-      {event.files && event.files.length > 0 && (
-        <div className="mt-4">
-          {isDownloading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-5 h-5 border-t-2 border-indigo-600 rounded-full animate-spin" />
-              <span className="text-sm">הורדה: {Math.round(downloadProgress)}%</span>
-            </div>
-          ) : (
-            <Button
-              onClick={handleDownloadAll}
-              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
-              size="sm"
-            >
-              הורד הכל
-            </Button>
-          )}
-        </div>
-      )}
+      {/* --- Remove the original bottom Download Section --- */}
 
       {/* Expand/Collapse Controls */}
       {!isExpanded && (
@@ -376,7 +377,7 @@ const ExpandableEvent = ({
         </motion.button>
       )}
 
-      {/* Add delete button */}
+      {/* Delete Button */}
       {!isEventPast && (
         <div className="mt-4 flex gap-2">
           <Button
@@ -419,6 +420,7 @@ const ExpandableEvent = ({
     </motion.div>
   );
 };
+
 
 export default function MyEvents() {
   const { user, loading } = useAuth();
