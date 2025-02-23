@@ -205,79 +205,117 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    const zip = new JSZip();
-    const folderZip = zip.folder(event.name);
-    let totalSize = 0;
-    let processedSize = 0;
-    let failedFiles = [];
-
-    // First pass: Calculate total size and validate files
-    for (const file of event.files) {
-      try {
-        const fileRef = ref(storage, file.url);
-        const metadata = await getMetadata(fileRef);
-        totalSize += metadata.size;
-      } catch (error) {
-        console.error(`Error validating file ${file.name}:`, error);
-        failedFiles.push(file.name);
+    // Add cancellation state
+    const cancellationToken = { isCancelled: false };
+    
+    // Retry function with exponential backoff
+    const fetchWithRetry = async (fn, retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          return await fn();
+        } catch (error) {
+          if (i === retries - 1) throw error;
+          await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+        }
       }
+    };
+
+    // Validate files in batches
+    const batchSize = 25;
+    let failedFiles = [];
+    let totalSize = 0;
+
+    for (let i = 0; i < event.files.length; i += batchSize) {
+      if (cancellationToken.isCancelled) break;
+      
+      const batch = event.files.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (file) => {
+        try {
+          const fileRef = ref(storage, file.url);
+          const metadata = await fetchWithRetry(() => getMetadata(fileRef));
+          totalSize += metadata.size;
+        } catch (error) {
+          console.error(`File validation failed: ${file.name}`, error);
+          failedFiles.push(file.name);
+        }
+      }));
     }
 
     if (failedFiles.length > 0) {
-      alert(`Could not prepare ${failedFiles.length} files for download`);
+      alert(`Failed to validate ${failedFiles.length} files. Check console for details.`);
       return;
     }
 
-    // Second pass: Actually download files
+    // Check storage quota
+    if (totalSize > 500 * 1024 * 1024) { // 500MB limit
+      alert('Total file size exceeds maximum download limit (500MB)');
+      return;
+    }
+
+    // Download files with progress
+    const zip = new JSZip();
+    let processedSize = 0;
+    
     for (const [index, file] of event.files.entries()) {
+      if (cancellationToken.isCancelled) break;
+      
       try {
         const fileRef = ref(storage, file.url);
-        const blob = await getBlob(fileRef);
+        const blob = await fetchWithRetry(() => getBlob(fileRef));
         
-        folderZip.file(file.name, blob);
+        zip.file(file.name, blob);
         processedSize += blob.size;
         
-        const calculatedProgress = Math.round(
-          (processedSize / totalSize) * 100
+        const progress = Math.min(
+          Math.round((processedSize / totalSize) * 100),
+          98 // Reserve 2% for final packaging
         );
-        setDownloadProgress(Math.min(calculatedProgress, 99)); // Keep at 99% until final generation
+        setDownloadProgress(progress);
       } catch (error) {
-        console.error(`Error downloading file ${file.name}:`, error);
+        console.error(`Failed to download: ${file.name}`, error);
         failedFiles.push(file.name);
       }
     }
 
     if (failedFiles.length > 0) {
-      alert(`Failed to download ${failedFiles.length} files: ${failedFiles.join(', ')}`);
+      alert(`Failed to download ${failedFiles.length} files:\n${failedFiles.join('\n')}`);
       return;
     }
 
-    // Generate ZIP
+    // Generate ZIP with progress
     const content = await zip.generateAsync(
       { type: "blob" },
       metadata => {
-        const genProgress = Math.round(metadata.percent);
-        setDownloadProgress(99 + genProgress * 0.01); // Distribute final 1% for generation
+        setDownloadProgress(98 + Math.round(metadata.percent * 0.02));
       }
     );
 
-    // Check blob validity
+    // Final validation
     if (!content || content.size === 0) {
-      throw new Error('Generated ZIP file is empty');
+      throw new Error('Generated ZIP file is invalid');
     }
 
-    // Final save
     saveAs(content, `${event.name}.zip`);
     setDownloadProgress(100);
-    setTimeout(() => setDownloadProgress(0), 2000); // Reset after success
 
   } catch (error) {
-    console.error("Download failed:", error);
+    console.error('Critical download error:', error);
     alert(`Download failed: ${error.message}`);
   } finally {
     setIsDownloading(false);
   }
 };
+
+// Add cancel button in JSX
+{isDownloading && (
+  <Button 
+    onClick={() => cancellationToken.isCancelled = true}
+    variant="destructive"
+    className="mt-2"
+  >
+    Cancel Download
+  </Button>
+)}
   
   return (
     <motion.div
