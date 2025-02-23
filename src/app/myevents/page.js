@@ -201,35 +201,84 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
   }, [event.photographerId, event.status]);
 
   const handleDownloadAll = async () => {
-    const zip = new JSZip();
-    const folderZip = zip.folder(event.name);
-
+  try {
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    try {
-      const totalFiles = event.files.length;
-      let processedFiles = 0;
+    const zip = new JSZip();
+    const folderZip = zip.folder(event.name);
+    let totalSize = 0;
+    let processedSize = 0;
+    let failedFiles = [];
 
-      for (const file of event.files) {
+    // First pass: Calculate total size and validate files
+    for (const file of event.files) {
+      try {
+        const fileRef = ref(storage, file.url);
+        const metadata = await getMetadata(fileRef);
+        totalSize += metadata.size;
+      } catch (error) {
+        console.error(`Error validating file ${file.name}:`, error);
+        failedFiles.push(file.name);
+      }
+    }
+
+    if (failedFiles.length > 0) {
+      alert(`Could not prepare ${failedFiles.length} files for download`);
+      return;
+    }
+
+    // Second pass: Actually download files
+    for (const [index, file] of event.files.entries()) {
+      try {
         const fileRef = ref(storage, file.url);
         const blob = await getBlob(fileRef);
-
+        
         folderZip.file(file.name, blob);
-        processedFiles += 1;
-        setDownloadProgress((processedFiles / totalFiles) * 100);
+        processedSize += blob.size;
+        
+        const calculatedProgress = Math.round(
+          (processedSize / totalSize) * 100
+        );
+        setDownloadProgress(Math.min(calculatedProgress, 99)); // Keep at 99% until final generation
+      } catch (error) {
+        console.error(`Error downloading file ${file.name}:`, error);
+        failedFiles.push(file.name);
       }
-
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, `${event.name}.zip`);
-    } catch (error) {
-      console.error("Error downloading files:", error);
-      alert("Failed to download files. Please try again.");
-    } finally {
-      setIsDownloading(false);
     }
-  };
 
+    if (failedFiles.length > 0) {
+      alert(`Failed to download ${failedFiles.length} files: ${failedFiles.join(', ')}`);
+      return;
+    }
+
+    // Generate ZIP
+    const content = await zip.generateAsync(
+      { type: "blob" },
+      metadata => {
+        const genProgress = Math.round(metadata.percent);
+        setDownloadProgress(99 + genProgress * 0.01); // Distribute final 1% for generation
+      }
+    );
+
+    // Check blob validity
+    if (!content || content.size === 0) {
+      throw new Error('Generated ZIP file is empty');
+    }
+
+    // Final save
+    saveAs(content, `${event.name}.zip`);
+    setDownloadProgress(100);
+    setTimeout(() => setDownloadProgress(0), 2000); // Reset after success
+
+  } catch (error) {
+    console.error("Download failed:", error);
+    alert(`Download failed: ${error.message}`);
+  } finally {
+    setIsDownloading(false);
+  }
+};
+  
   return (
     <motion.div
       layout
