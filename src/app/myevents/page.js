@@ -111,8 +111,8 @@ const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
 
-  const ITEMS_PER_PAGE = 16;
-  const COLLAPSED_ITEMS = 4;
+  const ITEMS_PER_PAGE = 20;
+  const COLLAPSED_ITEMS = 10;
   const eventDate = event.date?.toDate();
   const isEventPast = eventDate ? eventDate < new Date() : false;
 
