@@ -20,7 +20,9 @@ import {
   FileAudioIcon,
   FileCodeIcon,
   FileTextIcon,
-  FileIcon
+  FileIcon,
+  ArrowLeft,
+  ArrowRight
 } from "lucide-react";
 import useUserRole from '@/hooks/useUserRole';
 import JSZip from "jszip";
@@ -39,31 +41,21 @@ import {
 
 const getFileType = (fileName) => {
   const extension = fileName.split('.').pop().toLowerCase();
-
-  // Image types
   const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-  if (imageTypes.includes(extension)) return 'image';
-
-  // Document types
   const documentTypes = ['pdf', 'doc', 'docx', 'txt', 'rtf'];
-  if (documentTypes.includes(extension)) return 'document';
-
-  // Code types
   const codeTypes = ['js', 'jsx', 'ts', 'tsx', 'html', 'css', 'json', 'py', 'java'];
-  if (codeTypes.includes(extension)) return 'code';
-
-  // Video types
   const videoTypes = ['mp4', 'avi', 'mov', 'wmv', 'webm'];
-  if (videoTypes.includes(extension)) return 'video';
-
-  // Audio types
   const audioTypes = ['mp3', 'wav', 'ogg', 'm4a'];
-  if (audioTypes.includes(extension)) return 'audio';
 
+  if (imageTypes.includes(extension)) return 'image';
+  if (documentTypes.includes(extension)) return 'document';
+  if (codeTypes.includes(extension)) return 'code';
+  if (videoTypes.includes(extension)) return 'video';
+  if (audioTypes.includes(extension)) return 'audio';
   return 'other';
 };
 
-const FileCard = ({ file }) => {
+const FileCard = ({ file, onClick }) => {
   const fileType = getFileType(file.name);
   const truncatedName = file.name.length > 15
     ? file.name.slice(0, 12) + '...' + file.name.slice(file.name.lastIndexOf('.'))
@@ -71,38 +63,28 @@ const FileCard = ({ file }) => {
 
   const getFileIcon = () => {
     switch (fileType) {
-      case 'document':
-        return <FileTextIcon className="w-8 h-8 text-blue-500" />;
-      case 'code':
-        return <FileCodeIcon className="w-8 h-8 text-green-500" />;
-      case 'video':
-        return <FileVideoIcon className="w-8 h-8 text-purple-500" />;
-      case 'audio':
-        return <FileAudioIcon className="w-8 h-8 text-pink-500" />;
-      case 'other':
-        return <FileIcon className="w-8 h-8 text-gray-500" />;
-      default:
-        return null;
+      case 'document': return <FileTextIcon className="w-8 h-8 text-blue-500" />;
+      case 'code': return <FileCodeIcon className="w-8 h-8 text-green-500" />;
+      case 'video': return <FileVideoIcon className="w-8 h-8 text-purple-500" />;
+      case 'audio': return <FileAudioIcon className="w-8 h-8 text-pink-500" />;
+      default: return <FileIcon className="w-8 h-8 text-gray-500" />;
     }
   };
 
   return (
     <motion.div
       layout
-      className="p-4 border rounded-lg hover:bg-gray-50 transition-colors flex flex-col items-center"
+      className="p-4 border rounded-lg hover:bg-gray-50 transition-colors flex flex-col items-center cursor-pointer"
+      onClick={onClick}
     >
-      <a
-        href={file.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group relative w-full aspect-square mb-2 flex items-center justify-center"
-      >
+      <div className="group relative w-full aspect-square mb-2 flex items-center justify-center">
         {fileType === 'image' ? (
           <div className="relative w-full h-full">
             <img
               src={file.url}
               alt={file.name}
               className="w-full h-full object-cover rounded-md"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity rounded-md" />
           </div>
@@ -111,7 +93,7 @@ const FileCard = ({ file }) => {
             {getFileIcon()}
           </div>
         )}
-      </a>
+      </div>
       <span className="text-sm text-gray-700 text-center">
         {truncatedName}
       </span>
@@ -119,21 +101,42 @@ const FileCard = ({ file }) => {
   );
 };
 
-const ExpandableEvent = ({
-  event,
-  isExpanded,
-  onToggleExpand,
-  onDelete
-}) => {
+const ExpandableEvent = ({ event, isExpanded, onToggleExpand, onDelete }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [photographer, setPhotographer] = useState(null);
   const [loadingPhotographer, setLoadingPhotographer] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
 
+  const ITEMS_PER_PAGE = 16;
+  const COLLAPSED_ITEMS = 4;
   const eventDate = event.date?.toDate();
   const isEventPast = eventDate ? eventDate < new Date() : false;
+
+  const visibleFiles = isExpanded 
+    ? event.files.slice(0, currentPage * ITEMS_PER_PAGE)
+    : event.files.slice(0, COLLAPSED_ITEMS);
+
+  const handleImageClick = (index) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handleLoadMore = () => setCurrentPage(prev => prev + 1);
+  
+  const handleShowLess = () => {
+    setCurrentPage(1);
+    onToggleExpand(null);
+  };
+
+  const navigateImage = (direction) => {
+    setSelectedImageIndex(prev => {
+      if (direction === 'prev') return Math.max(0, prev - 1);
+      return Math.min(event.files.length - 1, prev + 1);
+    });
+  };
 
   const handleEnterPayment = async () => {
     try {
@@ -170,13 +173,13 @@ const ExpandableEvent = ({
       await updateDoc(doc(db, 'events', event.id), {
         status: 'deleted'
       });
-      onDelete(event.id); // Update UI state
+      onDelete(event.id);
     } catch (error) {
       console.error('Error deleting event:', error);
       alert('מחיקת האירוע נכשלה. אנא נסה שוב.');
     }
   };
-  
+
   useEffect(() => {
     const fetchPhotographer = async () => {
       if (event.status === 'accepted' && event.photographerId) {
@@ -208,19 +211,15 @@ const ExpandableEvent = ({
       const totalFiles = event.files.length;
       let processedFiles = 0;
 
-      // Loop through each file in the event and add it to the zip
       for (const file of event.files) {
         const fileRef = ref(storage, file.url);
         const blob = await getBlob(fileRef);
 
         folderZip.file(file.name, blob);
         processedFiles += 1;
-
-        // Update progress
         setDownloadProgress((processedFiles / totalFiles) * 100);
       }
 
-      // Generate the zip file and trigger the download
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, `${event.name}.zip`);
     } catch (error) {
@@ -235,14 +234,11 @@ const ExpandableEvent = ({
     <motion.div
       layout
       initial={false}
-      animate={{
-        transition: { duration: 0.3 }
-      }}
+      animate={{ transition: { duration: 0.3 } }}
       className={`relative border rounded-lg p-4 md:p-6 bg-white shadow-md transition-all ${
         isExpanded ? "h-[80vh] md:h-[70vh] overflow-y-auto" : "h-auto"
       }`}
     >
-      {/* Event Header */}
       <div className="mb-4">
         <h2 className="text-xl md:text-2xl font-semibold text-gray-800 truncate">{event.name}</h2>
         <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:gap-4 text-gray-600 mt-2">
@@ -275,8 +271,7 @@ const ExpandableEvent = ({
         </div>
       </div>
 
-      {/* --- New: Download Section on Top --- */}
-      {event.files && event.files.length > 0 && (
+      {event.files?.length > 0 && (
         <div className="sticky top-0 bg-white z-50 p-2">
           {isDownloading ? (
             <div className="flex items-center justify-center space-x-2">
@@ -285,7 +280,6 @@ const ExpandableEvent = ({
             </div>
           ) : (
             <Button
-              // Prevent the click from propagating to the card’s expand/collapse overlay
               onClick={(e) => { e.stopPropagation(); handleDownloadAll(); }}
               className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
               size="sm"
@@ -296,9 +290,7 @@ const ExpandableEvent = ({
         </div>
       )}
 
-      {/* Gallery & Status Section */}
       <div>
-        {/* Status Section */}
         <div className="mb-4">
           {event.status === "uploaded" ? (
             <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
@@ -340,44 +332,89 @@ const ExpandableEvent = ({
                 הזן פרטי תשלום
               </Button>
             </div>
-          ) :
-            null}
+          ) : null}
         </div>
 
-        {/* File Grid */}
-        {event.files && event.files.length > 0 ? (
-          <motion.div
-            layout
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4"
-          >
-            {event.files.map((file, index) => (
-              <FileCard key={index} file={file} />
-            ))}
-          </motion.div>
-        ) : (<span />)}
+        {event.files?.length > 0 && (
+          <>
+            <motion.div
+              layout
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-4"
+            >
+              {visibleFiles.map((file, index) => (
+                <FileCard
+                  key={index}
+                  file={file}
+                  onClick={() => handleImageClick(isExpanded ? index : index + COLLAPSED_ITEMS)}
+                />
+              ))}
+            </motion.div>
+
+            {!isExpanded && event.files.length > COLLAPSED_ITEMS && (
+              <Button
+                onClick={() => onToggleExpand(event.id)}
+                className="mt-4 w-full"
+                variant="outline"
+              >
+                הצג עוד ({event.files.length - COLLAPSED_ITEMS} תמונות)
+              </Button>
+            )}
+
+            {isExpanded && (
+              <div className="mt-4 flex gap-2 justify-center">
+                {event.files.length > visibleFiles.length && (
+                  <Button onClick={handleLoadMore} variant="outline">
+                    טען עוד ({event.files.length - visibleFiles.length} נותרו)
+                  </Button>
+                )}
+                <Button onClick={handleShowLess} variant="ghost">
+                  הצג פחות
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      {/* --- Remove the original bottom Download Section --- */}
+      {selectedImageIndex >= 0 && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+          <button
+            className="absolute top-4 right-4 text-white p-2"
+            onClick={() => setSelectedImageIndex(-1)}
+          >
+            <XIcon className="w-8 h-8" />
+          </button>
 
-      {/* Expand/Collapse Controls */}
-      {!isExpanded && (
-        <div
-          className="absolute inset-0 cursor-pointer"
-          onClick={() => onToggleExpand(event.id)}
-        />
-      )}
-      {isExpanded && (
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute top-2 right-2 p-1 md:p-2 rounded-full bg-gray-100 hover:bg-gray-200"
-          onClick={() => onToggleExpand(null)}
-        >
-          <XIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
-        </motion.button>
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={event.files[selectedImageIndex]?.url}
+              className="object-contain max-h-[80vh]"
+              alt={`Event content ${selectedImageIndex + 1}`}
+            />
+
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 p-4 text-white hover:bg-white/10 rounded-full disabled:opacity-50"
+              onClick={() => navigateImage('prev')}
+              disabled={selectedImageIndex === 0}
+            >
+              <ArrowLeft className="w-8 h-8" />
+            </button>
+
+            <button
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-4 text-white hover:bg-white/10 rounded-full disabled:opacity-50"
+              onClick={() => navigateImage('next')}
+              disabled={selectedImageIndex === event.files.length - 1}
+            >
+              <ArrowRight className="w-8 h-8" />
+            </button>
+
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black/50 px-4 py-2 rounded-full">
+              {selectedImageIndex + 1} / {event.files.length}
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Delete Button */}
       {!isEventPast && (
         <div className="mt-4 flex gap-2">
           <Button
@@ -421,7 +458,6 @@ const ExpandableEvent = ({
   );
 };
 
-
 export default function MyEvents() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -434,7 +470,7 @@ export default function MyEvents() {
   const handleEventDeleted = (eventId) => {
     setEvents(prev => prev.filter(event => event.id !== eventId));
   };
-  
+
   useEffect(() => {
     if (!loading && !user) {
       router.push("/login");
@@ -453,13 +489,9 @@ export default function MyEvents() {
     const fetchEvents = async () => {
       if (!user?.email) return;
       try {
-        // Example: for photographers, query by photographerId.
-        // (You can adjust this if you need to support clients as well.)
         let eventsQuery;
-        console.log("role", role);
-        
         if (role === 'admin') {
-          eventsQuery = query(collection(db, "events")); // Admin sees all events
+          eventsQuery = query(collection(db, "events"));
         } else {
           eventsQuery = query(
             collection(db, "events"),
@@ -467,19 +499,14 @@ export default function MyEvents() {
             where("status", "!=", "deleted")
           );
         }
-        console.log("eventsQuery", eventsQuery);
         const querySnapshot = await getDocs(eventsQuery);
-        const eventsData = querySnapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            ...data
-          };
-        });
+        const eventsData = querySnapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        }));
         setEvents(eventsData);
       } catch (error) {
         console.error("Error fetching events:", error);
-        //alert("Failed to load events");
       } finally {
         setLoadingEvents(false);
       }
@@ -488,7 +515,7 @@ export default function MyEvents() {
     if (user && isValidRole) {
       fetchEvents();
     }
-  }, [user, isValidRole]);
+  }, [user, isValidRole, role]);
 
   if (loading || roleLoading || loadingEvents) {
     return <div className="min-h-screen flex items-center justify-center">טוען...</div>;
@@ -519,6 +546,7 @@ export default function MyEvents() {
                 event={event}
                 isExpanded={expandedEventId === event.id}
                 onToggleExpand={setExpandedEventId}
+                onDelete={handleEventDeleted}
               />
             ))}
           </div>
